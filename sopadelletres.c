@@ -172,10 +172,10 @@ bool comprova_entrada(int n_params, char *params[]){
 }
 
 
-bool comprova_arxiu(char *route, unsigned short *mida_t){
+bool comprova_arxiu(char *route, unsigned int *mida_t){
     bool ok = false;
     char p_temp[MAX_LLETRES];       //compte de no tallar paraules!!
-    unsigned short count_paraula = 0;
+    unsigned int count_paraula = 0;
     FILE *t_file = fopen(route, "r");
     while (fscanf(t_file, "%s", p_temp) != EOF) {
         count_paraula++;
@@ -189,16 +189,25 @@ bool comprova_arxiu(char *route, unsigned short *mida_t){
 
 
 
-bool carregar_paraules(char *route, char *dades[]){
-    unsigned short i = 0;
-    char p_temp[MAX_LLETRES];       //compte de no tallar paraules!!
+bool carregar_paraules(char *route, char *dades){
+    unsigned int a, i = 0;
+    char t_str[MAX_LLETRES]; 
     FILE *t_file = fopen(route, "r");
-    while (fscanf(t_file, "%s", p_temp) != EOF) {
-        dades[i] = p_temp;
-        //printf("\n%s", p_temp);
-        i++;
+    while (fscanf(t_file, "%s", t_str) != EOF) {
+        char * p_temp = (char*) malloc(strlen(t_str) * sizeof(char*));   //anotacio: sizeof(char*) -> la mida d'un char es d'1 byte...
+        p_temp = t_str; 
+        printf("\n%s", p_temp);
+        printf("\n%d", strlen(p_temp));
+        //free de memoria para arreglar
+        //free(p_temp);
+        printf("\n%d", sizeof(dades));
+        for(a=0; a < strlen(p_temp);a++){
+            dades[a] = malloc(MAX_LLETRES);
+            dades[a] = *p_temp;
+        }
+        
     }
-    dades[i+1] = '\0';
+
     fclose(t_file);
     return false;
 }
@@ -207,19 +216,17 @@ bool carregar_paraules(char *route, char *dades[]){
 //exemple d'execucio: ./main paraules.txt
 int main(int argc, char *argv[]) {
     FILE *f;
-    unsigned short *mida_t;     //variable a on emmagatzenare la mida de la taula on emmagatzenare el contingut de l'arxiu        
-    bool validate = false;  
-    char *dades[MAX_PARAULES];
+    unsigned int *mida_t;     //variable a on emmagatzenare la mida de la taula on emmagatzenare el contingut de l'arxiu        
+    bool validate = false;
+    char *dades; 
     mostra_benvinguda();        //mostra missatge de benvinguda 
 
     if(comprova_entrada(argc, argv) && comprova_arxiu(argv[1], mida_t)){        //en el cas de que la entrada sigui la esperada i l'arxiu existeixi
-        validate = true;                                                       //obrim l'arxiu i si les dades son correctes l'emmagatzenem a un array "dades"
-        
+        validate = true;                
         carregar_paraules(argv[1], dades);
+    
+       
         
-        for(int a = 0; a < sizeof(dades);a++){
-            printf("\n%s", dades[a]);
-        }
     }     
       
     
