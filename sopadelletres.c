@@ -156,58 +156,54 @@ void mostra_benvinguda(){
 }
 
 bool comprova_entrada(int n_params, char *params[]){
-    bool check = false;
+    bool check = false, open = false;
     FILE *exist = fopen(params[1], "r");
     if(n_params < 2){   //param 2 = ruta arxiu
         printf("\nComprova que has indicat la ruta d'un arxiu de paraules!");
     }else{
         if(exist != NULL){
             check = true;
+            fclose(exist);
         }else{
             printf("\nComprova que has indicat una ruta a un arxiu correcte!");
         }      
     }
-    fclose(exist);
+    
     return check;
 }
 
 
-bool comprova_arxiu(char *route, unsigned int *mida_t){
-    bool ok = false;
+int comprova_arxiu(char *route){
     char p_temp[MAX_LLETRES];       //compte de no tallar paraules!!
     unsigned int count_paraula = 0;
     FILE *t_file = fopen(route, "r");
-    while (fscanf(t_file, "%s", p_temp) != EOF) {
-        count_paraula++;
+    if(t_file != NULL){
+        while (fscanf(t_file, "%s", p_temp) != EOF) {
+            count_paraula++;    //emmagatzemo la quantitat de paraules que hi ha a l'arxiu
+        }
+        fclose(t_file);
+        if(count_paraula < MIN_PARAULES) printf("\nL'arxiu especificat no te suficients paraules");
     }
-    fclose(t_file);
-    *mida_t = count_paraula;    //emmagatzemo la quantitat de paraules que hi ha a l'arxiu
-    if(count_paraula < MIN_PARAULES) printf("\nL'arxiu especificat no te suficients paraules"); ok=true;
-    return ok;
+    return count_paraula;
 }
 
 
 
 
-bool carregar_paraules(char *route, char *dades){
-    unsigned int a, i = 0;
-    char t_str[MAX_LLETRES]; 
-    FILE *t_file = fopen(route, "r");
+bool carregar_paraules(char *route, char **dades){
+    unsigned int i = 0;
+    char t_str[MAX_LLETRES];    //variable temporal a on emmagatzemare les paraules de l'arxiu
+    char*p_temp;        //variable a on emmagatzemare les paraules de la variable t_var pero amb la mida correcta
+    FILE *t_file = fopen(route, "r");       //com previament ja he pogut obrir l'arxiu ara no hauria de tenir cap de problema...
     while (fscanf(t_file, "%s", t_str) != EOF) {
-        char * p_temp = (char*) malloc(strlen(t_str) * sizeof(char*));   //anotacio: sizeof(char*) -> la mida d'un char es d'1 byte...
-        p_temp = t_str; 
-        printf("\n%s", p_temp);
-        printf("\n%d", strlen(p_temp));
-        //free de memoria para arreglar
-        //free(p_temp);
-        printf("\n%d", sizeof(dades));
-        for(a=0; a < strlen(p_temp);a++){
-            dades[a] = malloc(MAX_LLETRES);
-            dades[a] = *p_temp;
-        }
-        
+        p_temp = (char*) malloc(strlen(t_str)+1 * sizeof(char*));   //anotacio: sizeof(char*) -> la mida d'un char es d'1 byte...
+        dades[i] = malloc(strlen(t_str)* sizeof(char*));        //mida de cada paraula a dintre de l'array principal (bidimensional)
+        p_temp = t_str;             
+        strcpy(dades[i], p_temp);   //emmagatzema a l'array dades cada camp de l'arxiu, cada camp te la mida necesaria i no mes per estalviar espai
+        //free(p_temp);       //no puc lliurar memoria?
+        //printf("\n%s",dades[i]);
+        i++;
     }
-
     fclose(t_file);
     return false;
 }
@@ -216,20 +212,27 @@ bool carregar_paraules(char *route, char *dades){
 //exemple d'execucio: ./main paraules.txt
 int main(int argc, char *argv[]) {
     FILE *f;
-    unsigned int *mida_t;     //variable a on emmagatzenare la mida de la taula on emmagatzenare el contingut de l'arxiu        
+    unsigned int mida_t;     //variable a on emmagatzenare la mida de la taula
     bool validate = false;
-    char *dades; 
+    char**dades;
     mostra_benvinguda();        //mostra missatge de benvinguda 
 
-    if(comprova_entrada(argc, argv) && comprova_arxiu(argv[1], mida_t)){        //en el cas de que la entrada sigui la esperada i l'arxiu existeixi
-        validate = true;                
-        carregar_paraules(argv[1], dades);
-    
-       
-        
+    //comprova si les dades d'entrada son correctes
+    if(comprova_entrada(argc, argv)){        //en el cas de que la entrada sigui la esperada i l'arxiu existeixi
+        mida_t = comprova_arxiu(argv[1]);
+        if(mida_t != 0) validate = true;        
     }     
       
-    
+    if(validate){
+        dades = malloc(mida_t*sizeof(char*));    
+        carregar_paraules(argv[1], dades);
+        /*
+        for(int a = 0; a < 5; a++){
+            printf("\n%s",dades[a]);    //a dades hi ha les paraules de l'arxiu
+        }
+        */
+        free(dades);
+    }
   
     //sopa_t sopa;    // La sopa de lletres
 
