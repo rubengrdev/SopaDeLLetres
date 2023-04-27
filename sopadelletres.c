@@ -172,24 +172,42 @@ bool comprova_entrada(int n_params, char *params[]){
     return check;
 }
 
+//@brief funcio que comprova si la longitud de la paraula es major al maxim especificat, i retorna a l'usuari un missatge en cas d'error
+bool comprova_paraula(unsigned int mida){
+    bool overflow = true;
+    if(mida > MAX_LLETRES){
+        printf("\nL'arxiu especificat te moltes paraules");
+        
+    }else if(mida < MIN_LLETRES){
+        printf("\nL'arxiu especificat no te suficients paraules");
+    }else{
+        overflow = false;
+    }
+    return overflow;
+}
 
+//@brief funcio que comprova la quantitat de paraules que hi ha a l'arxiu
 int comprova_arxiu(char *route){
-    char p_temp[MAX_LLETRES];       //compte de no tallar paraules!!
+    char p_temp[MAX_LLETRES];
+    bool arxiuValid = true;
     unsigned int count_paraula = 0;
     FILE *t_file = fopen(route, "r");
     if(t_file != NULL){
         while (fscanf(t_file, "%s", p_temp) != EOF) {
-            count_paraula++;    //emmagatzemo la quantitat de paraules que hi ha a l'arxiu
+            if(arxiuValid){
+                if(comprova_paraula(strlen(p_temp))) count_paraula++,  arxiuValid = false;
+            }
         }
         fclose(t_file);
-        if(count_paraula < MIN_PARAULES) printf("\nL'arxiu especificat no te suficients paraules");
+        
     }
+    if(!arxiuValid) count_paraula = 0;  //reinicia contador de paraules ja que invalidem tot l'arxiu
     return count_paraula;
 }
 
 
 
-
+//@brief funcio que carrega les paraules de l'arxiu en un array de paraules que compleixen les regles de mida a la memoria optimes.
 bool carregar_paraules(char *route, char **dades){
     unsigned int i = 0;
     char t_str[MAX_LLETRES];    //variable temporal a on emmagatzemare les paraules de l'arxiu
