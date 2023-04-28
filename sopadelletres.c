@@ -168,7 +168,6 @@ bool comprova_entrada(int n_params, char *params[]){
             printf("\nComprova que has indicat una ruta a un arxiu correcte!");
         }      
     }
-    
     return check;
 }
 
@@ -210,21 +209,27 @@ int comprova_arxiu(char *route){
 //@brief funcio que carrega les paraules de l'arxiu en un array de paraules que compleixen les regles de mida a la memoria optimes.
 bool carregar_paraules(char *route, char **dades){
     unsigned int i = 0;
-    char t_str[MAX_LLETRES];    //variable temporal a on emmagatzemare les paraules de l'arxiu
+    char t_str[MAX_LLETRES-1];    //variable temporal a on emmagatzemare les paraules de l'arxiu
     char*p_temp;        //variable a on emmagatzemare les paraules de la variable t_var pero amb la mida correcta
     FILE *t_file = fopen(route, "r");       //com previament ja he pogut obrir l'arxiu ara no hauria de tenir cap de problema...
     while (fscanf(t_file, "%s", t_str) != EOF) {
-        p_temp = (char*) malloc(strlen(t_str)+1 * sizeof(char*));   //anotacio: sizeof(char*) -> la mida d'un char es d'1 byte...
-        dades[i] = malloc(strlen(t_str)* sizeof(char*));        //mida de cada paraula a dintre de l'array principal (bidimensional)
-        p_temp = t_str;             
-        strcpy(dades[i], p_temp);   //emmagatzema a l'array dades cada camp de l'arxiu, cada camp te la mida necesaria i no mes per estalviar espai
-        //free(p_temp);       //no puc lliurar memoria?
-        //printf("\n%s",dades[i]);
+        //p_temp = (char*) malloc(strlen(t_str)+1 * sizeof(char*));   //anotacio: sizeof(char*) -> la mida d'un char es d'1 byte...
+        dades[i] = (char*) malloc(strlen(t_str)* sizeof(char*));        //mida de cada paraula a dintre de l'array principal (bidimensional)      
+        strcpy(dades[i], t_str);   //emmagatzema a l'array dades cada camp de l'arxiu, cada camp te la mida necesaria i no mes per estalviar espai
         i++;
     }
     fclose(t_file);
     return false;
 }
+
+
+//decisio de disseny: algoritme de ordenacio mergesort, molt eficient amb grans quantitats de dades (en aquest cas no son quantitats molt grans pero haura d'iterar sobre cada lletra de les paraules)
+//141
+
+
+
+
+
 
 //arxiu per parametre, per accedir a la direcció cal treballar amb: argv[1]
 //exemple d'execucio: ./main paraules.txt
@@ -232,14 +237,13 @@ int main(int argc, char *argv[]) {
     FILE *f;
     unsigned int mida_t;     //variable a on emmagatzenare la mida de la taula
     bool validate = false;
-    char**dades;
+    char**dades;            
     mostra_benvinguda();        //mostra missatge de benvinguda 
 
     //comprova si les dades d'entrada son correctes
     if(comprova_entrada(argc, argv)){        //en el cas de que la entrada sigui la esperada i l'arxiu existeixi
         mida_t = comprova_arxiu(argv[1]);
         if(mida_t != 0) validate = true;    
-        printf("\n%d", validate);    
     }     
       
     if(validate){
@@ -251,7 +255,6 @@ int main(int argc, char *argv[]) {
         
         free(dades);
     }
-  
     //sopa_t sopa;    // La sopa de lletres
 
     //genera_sopa(&sopa);     // La generem (exemple)
