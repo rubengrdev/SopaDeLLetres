@@ -174,34 +174,34 @@ bool comprova_entrada(int n_params, char *params[]){
 
 //@brief funcio que comprova si la longitud de la paraula es major al maxim especificat, i retorna a l'usuari un missatge en cas d'error
 bool comprova_paraula(unsigned int mida){
-    bool overflow = true;
+    bool valid = true;
     if(mida > MAX_LLETRES){
-        printf("\nL'arxiu especificat te moltes paraules");
-        
+        printf("\nL'arxiu especificat conté paraules que sobrepasen el limit de lletres");
+        valid = false;
     }else if(mida < MIN_LLETRES){
-        printf("\nL'arxiu especificat no te suficients paraules");
-    }else{
-        overflow = false;
+        printf("\nL'arxiu especificat conté paraules que no respeten el limit de lletres");
+        valid = false;
     }
-    return overflow;
+    return valid;
 }
 
 //@brief funcio que comprova la quantitat de paraules que hi ha a l'arxiu
 int comprova_arxiu(char *route){
-    char p_temp[MAX_LLETRES];
+    char p_temp[MAX_LLETRES];       //en compte d'aquesta constant millor ficar un valor maxim per rebre qunsevol cosa...
     bool arxiuValid = true;
     unsigned int count_paraula = 0;
     FILE *t_file = fopen(route, "r");
     if(t_file != NULL){
         while (fscanf(t_file, "%s", p_temp) != EOF) {
-            if(arxiuValid){
-                if(comprova_paraula(strlen(p_temp))) count_paraula++,  arxiuValid = false;
-            }
+            if(comprova_paraula(strlen(p_temp))){        //conta les paraules de l'arxiu mentres fa una cerca de possibles paraules invalides, si aixo es compleix invalida l'arxiu
+                count_paraula++;
+            }else{
+                arxiuValid = false;
+            }    
         }
         fclose(t_file);
-        
     }
-    if(!arxiuValid) count_paraula = 0;  //reinicia contador de paraules ja que invalidem tot l'arxiu
+    if(!arxiuValid) count_paraula = 0;  //reinicia contador de paraules ja que invalidem tot l'arxiu 
     return count_paraula;
 }
 
@@ -238,17 +238,17 @@ int main(int argc, char *argv[]) {
     //comprova si les dades d'entrada son correctes
     if(comprova_entrada(argc, argv)){        //en el cas de que la entrada sigui la esperada i l'arxiu existeixi
         mida_t = comprova_arxiu(argv[1]);
-        if(mida_t != 0) validate = true;        
+        if(mida_t != 0) validate = true;    
+        printf("\n%d", validate);    
     }     
       
     if(validate){
         dades = malloc(mida_t*sizeof(char*));    
         carregar_paraules(argv[1], dades);
-        /*
         for(int a = 0; a < 5; a++){
             printf("\n%s",dades[a]);    //a dades hi ha les paraules de l'arxiu
         }
-        */
+        
         free(dades);
     }
   
