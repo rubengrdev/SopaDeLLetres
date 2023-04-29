@@ -213,7 +213,7 @@ bool carregar_paraules(char *route, char **dades){
     char*p_temp;        //variable a on emmagatzemare les paraules de la variable t_var pero amb la mida correcta
     FILE *t_file = fopen(route, "r");       //com previament ja he pogut obrir l'arxiu ara no hauria de tenir cap de problema...
     while (fscanf(t_file, "%s", t_str) != EOF) {
-        //p_temp = (char*) malloc(strlen(t_str)+1 * sizeof(char*));   //anotacio: sizeof(char*) -> la mida d'un char es d'1 byte...
+        //p_temp = (char*) malloc(strlen(t_str) * sizeof(char*));   //anotacio: sizeof(char*) -> la mida d'un char es d'1 byte...
         dades[i] = (char*) malloc(strlen(t_str)* sizeof(char*));        //mida de cada paraula a dintre de l'array principal (bidimensional)      
         strcpy(dades[i], t_str);   //emmagatzema a l'array dades cada camp de l'arxiu, cada camp te la mida necesaria i no mes per estalviar espai
         i++;
@@ -223,8 +223,70 @@ bool carregar_paraules(char *route, char **dades){
 }
 
 
+
+
+
+
+
+
+
+
+
+void mescla(char **dades, int i, int m, int j){
+    char *temp[MAX_LLETRES];
+    int pos_left = i, pos_right = m + 1, k;
+    k = i;
+    // Mentre hi ha dades a les dues porcions
+    while ((pos_left <= m) && (pos_right <= j)){ // Posem el menor i avancem
+    //printf("\n%s",dades[pos_left]);
+    //printf("\n%s",dades[pos_right]);
+        if (strcmp(dades[pos_left], dades[pos_right]) < 0){     //dades[left] es mes petit que dades[right]
+            temp[k] = dades[pos_left];
+            pos_left++;
+        }else{    //dades[left] es mes gran que dades[right] O son strings completament iguals, en aquest cas dona igual l'ordre aixi que quedara aqui
+            temp[k] = dades[pos_right];             
+            pos_right++;
+        }
+        k++;
+    }
+    // S'ha esgotat alguna porcio
+    // Nomes copiarem el que
+    //no s'hagi acabat
+    while (pos_right <= j){
+        temp[k] = dades[pos_right];
+        pos_right++;
+        k++;
+    }
+    while (pos_left <= m){
+        temp[k] = dades[pos_left];
+        pos_left++;
+        k++;
+    }
+    // Copiem les dades mesclades
+    for (k = i; k <= j; k++){
+        dades[k] = (char*) malloc(strlen(temp[k])*sizeof(char*));   //com reorganitzem les paraules aquestes posicions de l'array no tenen la mida correcta
+        dades[k] = temp[k];
+        //printf("\n%d", k);
+        //printf("\n%s", temp[k]);
+    }
+}
+
+
+
+
+
+
+
 //decisio de disseny: algoritme de ordenacio mergesort, molt eficient amb grans quantitats de dades (en aquest cas no son quantitats molt grans pero haura d'iterar sobre cada lletra de les paraules)
-//141
+void separa_i_mescla(char **dades, int i, int j){
+    int m;
+    if (j != i){
+        m = (i + j)/2;      //valor a la meitat (frontera)
+        separa_i_mescla(dades, i, m); // Meitat esquerra
+        separa_i_mescla(dades, m + 1, j); // Meitat dreta
+        mescla(dades, i, m, j);
+    }
+}
 
 
 
@@ -237,7 +299,8 @@ int main(int argc, char *argv[]) {
     FILE *f;
     unsigned int mida_t;     //variable a on emmagatzenare la mida de la taula
     bool validate = false;
-    char**dades;            
+    char**dades;
+    int i, j;            
     mostra_benvinguda();        //mostra missatge de benvinguda 
 
     //comprova si les dades d'entrada son correctes
@@ -249,10 +312,20 @@ int main(int argc, char *argv[]) {
     if(validate){
         dades = malloc(mida_t*sizeof(char*));    
         carregar_paraules(argv[1], dades);
-        for(int a = 0; a < 5; a++){
+       
+        separa_i_mescla(dades,i,mida_t-1);      //j = mida_t - 1 ja que volem n posicions desde 0 fins a n
+        
+         for(int a = 0; a < 5; a++){
             printf("\n%s",dades[a]);    //a dades hi ha les paraules de l'arxiu
         }
-        
+
+
+
+
+
+
+
+
         free(dades);
     }
     //sopa_t sopa;    // La sopa de lletres
