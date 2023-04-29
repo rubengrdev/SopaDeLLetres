@@ -222,16 +222,7 @@ bool carregar_paraules(char *route, char **dades){
     return false;
 }
 
-
-
-
-
-
-
-
-
-
-
+//@brief s'ocupa de jugar amb les posicions de l'array i acaba ordenant a la taula pasada per referencia mitjançant una taula temporal
 void mescla(char **dades, int i, int m, int j){
     char *temp[j];
     int pos_left = i, pos_right = m + 1, k;
@@ -267,36 +258,26 @@ void mescla(char **dades, int i, int m, int j){
     }
 }
 
-
-
-
-
-
-
 //decisio de disseny: algoritme de ordenacio mergesort, molt eficient amb grans quantitats de dades (en aquest cas no son quantitats molt grans pero haura d'iterar sobre cada lletra de les paraules)
-void mergeSort(char **dades, int i, int j){
+void ordenar_paraules(char **dades, int i, int j){
     unsigned int m;
     if (j != i){
         m = (i + j)/2;      //valor a la meitat (frontera)
-        mergeSort(dades, i, m); // Meitat esquerra
-        mergeSort(dades, m + 1, j); // Meitat dreta
+        ordenar_paraules(dades, i, m); // Meitat esquerra
+        ordenar_paraules(dades, m + 1, j); // Meitat dreta
         mescla(dades, i, m, j);
     }
 }
-
-
-
-
 
 
 //arxiu per parametre, per accedir a la direcció cal treballar amb: argv[1]
 //exemple d'execucio: ./main paraules.txt
 int main(int argc, char *argv[]) {
     FILE *f;
-    unsigned int mida_t;     //variable a on emmagatzenare la mida de la taula
+    unsigned int mida_t, i;     //variable a on emmagatzenare la mida de la taula
     bool validate = false;
     char**dades;
-    int i, j;            
+
     mostra_benvinguda();        //mostra missatge de benvinguda 
 
     //comprova si les dades d'entrada son correctes
@@ -304,28 +285,25 @@ int main(int argc, char *argv[]) {
         mida_t = comprova_arxiu(argv[1]);
         if(mida_t != 0) validate = true;    
     }     
-      
+
     if(validate){
-        dades = malloc(mida_t*sizeof(char*)); 
-        printf("\nMIDA: %d", mida_t);   
-        carregar_paraules(argv[1], dades);
-       
-        mergeSort(dades,i,mida_t-1);      //j = mida_t - 1 ja que volem n posicions desde 0 fins a n
+        dades = malloc(mida_t*sizeof(char*));   //preparem la mida de la taula de dades segons el numero de paraules que hi ha a l'arxiu 
+        carregar_paraules(argv[1], dades);         //carreguem les paraules a dintre d'un array
+        //ordenem les paraules mitjançant un algorsime d'ordenacio: merge sort
+        ordenar_paraules(dades,i,mida_t-1);      //j = mida_t - 1 ja que volem n posicions desde 0 fins a n
         
          for(int a = 0; a < mida_t; a++){
             printf("\n%s",dades[a]);    //a dades hi ha les paraules de l'arxiu
         }
 
-
-
-
+        //TO DO...
 
 
 
 
         free(dades);
     }
-    //sopa_t sopa;    // La sopa de lletres
+    
 
     //genera_sopa(&sopa);     // La generem (exemple)
 
