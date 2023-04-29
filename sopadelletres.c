@@ -233,7 +233,7 @@ bool carregar_paraules(char *route, char **dades){
 
 
 void mescla(char **dades, int i, int m, int j){
-    char *temp[MAX_LLETRES];
+    char *temp[j];
     int pos_left = i, pos_right = m + 1, k;
     k = i;
     // Mentre hi ha dades a les dues porcions
@@ -249,9 +249,7 @@ void mescla(char **dades, int i, int m, int j){
         }
         k++;
     }
-    // S'ha esgotat alguna porcio
-    // Nomes copiarem el que
-    //no s'hagi acabat
+    //a aquest punt organitzem les posicions a l'array temporal
     while (pos_right <= j){
         temp[k] = dades[pos_right];
         pos_right++;
@@ -262,12 +260,10 @@ void mescla(char **dades, int i, int m, int j){
         pos_left++;
         k++;
     }
-    // Copiem les dades mesclades
+    // Fent una interacio sobre l'array principal tornem a copiar les dades desde l'array temporal
     for (k = i; k <= j; k++){
         dades[k] = (char*) malloc(strlen(temp[k])*sizeof(char*));   //com reorganitzem les paraules aquestes posicions de l'array no tenen la mida correcta
         dades[k] = temp[k];
-        //printf("\n%d", k);
-        //printf("\n%s", temp[k]);
     }
 }
 
@@ -278,12 +274,12 @@ void mescla(char **dades, int i, int m, int j){
 
 
 //decisio de disseny: algoritme de ordenacio mergesort, molt eficient amb grans quantitats de dades (en aquest cas no son quantitats molt grans pero haura d'iterar sobre cada lletra de les paraules)
-void separa_i_mescla(char **dades, int i, int j){
-    int m;
+void mergeSort(char **dades, int i, int j){
+    unsigned int m;
     if (j != i){
         m = (i + j)/2;      //valor a la meitat (frontera)
-        separa_i_mescla(dades, i, m); // Meitat esquerra
-        separa_i_mescla(dades, m + 1, j); // Meitat dreta
+        mergeSort(dades, i, m); // Meitat esquerra
+        mergeSort(dades, m + 1, j); // Meitat dreta
         mescla(dades, i, m, j);
     }
 }
@@ -310,12 +306,13 @@ int main(int argc, char *argv[]) {
     }     
       
     if(validate){
-        dades = malloc(mida_t*sizeof(char*));    
+        dades = malloc(mida_t*sizeof(char*)); 
+        printf("\nMIDA: %d", mida_t);   
         carregar_paraules(argv[1], dades);
        
-        separa_i_mescla(dades,i,mida_t-1);      //j = mida_t - 1 ja que volem n posicions desde 0 fins a n
+        mergeSort(dades,i,mida_t-1);      //j = mida_t - 1 ja que volem n posicions desde 0 fins a n
         
-         for(int a = 0; a < 5; a++){
+         for(int a = 0; a < mida_t; a++){
             printf("\n%s",dades[a]);    //a dades hi ha les paraules de l'arxiu
         }
 
