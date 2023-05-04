@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+
 #define MIN_LLETRES 4
 #define MAX_LLETRES 8
 #define MIN_PARAULES 4      //afegit extra, si no hi ha un minim de paraules no te molt sentit una sopa de lletres...
@@ -150,6 +151,44 @@ void mostra_sopa (sopa_t s)
     }
 
 }
+
+//@brief funcio que demana la mida que tindra la taula, aquesta mida sera n * n
+int demanar_mida(){
+    int mida;
+    do{
+        printf("Introdueix la mida de la sopa de lletres. Recorda que és un cuadrat de costat mínim 10 i màxim 40.\n");
+        scanf("%i", &mida);
+    }while (mida < 10 || mida > 40);
+    return mida;
+}
+
+//@brief mostra missatge de enhorabona al acabar el joc guanyant
+void mostra_enhorabona()
+{
+    printf("Enhorabona! Has resolt la sopa de lletres.\n");
+}
+
+//@brief funcio que comprova el missatge que l'usuari ingresa a el joc, en el cas de que sigui la paraula 'RENDICIO' dona per finalitzada la partida
+bool rendicio(char *paraula)
+{
+    int i = 0, p, r;
+    bool res = true;
+    char rendicio[MAX_LLETRES+1] = {'R', 'E', 'N', 'D', 'I', 'C', 'I', 'O', '\0'};
+    p = strlen(paraula);
+    r = strlen(rendicio);
+    if (p != r){
+        res = false;
+    }else{
+        while (i < 8 && res){
+            if (paraula[i] != rendicio[i]){
+                res = false;
+            }
+            i++;
+        }
+    }
+    return res;
+}
+
 
 //@brief funcio que revela la sopa quan l'usuari es rendeix
 void revelar_sopa (sopa_t s)
