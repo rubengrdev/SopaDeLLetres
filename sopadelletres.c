@@ -151,6 +151,21 @@ void mostra_sopa (sopa_t s)
 
 }
 
+//@brief funcio que revela la sopa quan l'usuari es rendeix
+void revelar_sopa (sopa_t s)
+{
+   int b;
+   /*for(b = 0; b < s.dim * s.dim; b++){
+        s.par[b].enc = true;
+   } */
+   //TO DO... (fins a que no hi hagi una funció que generi la sopa especifica aquesta no es pot completar correctament)
+
+    mostra_sopa(s); //mostra la sopa
+}
+
+
+
+
 void mostra_benvinguda(){
     printf("\n******************************************************\nUs donem la benvinguda al joc de la sopa de lletres!\nAutors: Joel, Ruben, Alberto\n******************************************************\n\n");
 }
@@ -185,8 +200,8 @@ bool comprova_paraula(unsigned int mida){
 }
 
 //@brief funcio que comprova la quantitat de paraules que hi ha a l'arxiu
-int comprova_arxiu(char *route){
-    char p_temp[MAX_LLETRES];       //en compte d'aquesta constant millor ficar un valor maxim per rebre qunsevol cosa...
+unsigned int comprova_arxiu(char *route){
+    char p_temp[100];       //per no tindre problemes amb paraules molt llargues tenim un màxim de 100 chars disponibles per llegir les dades, si per alguna rao es especifica una paraula amb mes caracters el programa retornara un error de procesament 'smash stack error'.
     bool arxiuValid = true;
     unsigned int count_paraula = 0;
     FILE *t_file = fopen(route, "r");
@@ -274,6 +289,7 @@ void ordenar_paraules(char **dades, int i, int j){
 //exemple d'execucio: ./main paraules.txt
 int main(int argc, char *argv[]) {
     FILE *f;
+    sopa_t sopa;
     unsigned int mida_t, i;     //variable a on emmagatzenare la mida de la taula
     bool validate = false;
     char**dades;
@@ -297,17 +313,28 @@ int main(int argc, char *argv[]) {
         }
 
         //TO DO...
+        /*
+        typedef struct 
+        {
+            int dim;        // Nombre de files = nombre de columnes
+            char *lletres;  // Taula amb les lletres
+            bool *encertades;   // Les lletres son d'una paraula que s'ha encertat
+            paraula_t par[MAX_PARAULES];    // Les paraules
+            int n_par;  // Nombre de paraules
+            int n_encerts;    // Nombre de paraules encertades
+        } sopa_t;
+        */
 
-
-
-
+        //s->dim = funcio_demanar_mida();
+        //memcpy(dades, s->lletres, mida_t);      //memcpy(void * destination, const void * source, size_t num) es una funcio que s'ocupa de copiar els bytes de la direccio d'entrada fins a la direccio de sortida
+        //es a dir, fem una copia de l'array
         free(dades);
     }
     
 
-    //genera_sopa(&sopa);     // La generem (exemple)
+    genera_sopa(&sopa);     // La generem (exemple)
 
-   // mostra_sopa(sopa);      // La mostrem per pantalla
-
+    //mostra_sopa(sopa);      // La mostrem per pantalla
+    revelar_sopa(sopa);
     return 0;
 }
