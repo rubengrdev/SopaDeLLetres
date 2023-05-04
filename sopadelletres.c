@@ -30,32 +30,40 @@ typedef struct
 /* Aquesta funcio genera la sopa de lletres, a partir del fitxer i altres parametres */
 /* que ja decidireu. En aquest cas només l'emplena amb una SOPA d'EXEMPLE, es a dir */
 /* que haureu de fer la vostra pròpia. */
-void genera_sopa(sopa_t *s)
-{
-    s->dim = 30;    // Mida màxima: 40 x 40
+void genera_sopa(char**dades, int mida, sopa_t *s){
+    int a;
+    s->dim = mida;    // Mida màxima: 40 x 40
     s->lletres = malloc(s->dim * s->dim * sizeof(char));   // Espai per a les lletres
     s->encertades = malloc(s->dim * s->dim * sizeof(char)); // Per saber si una lletra correspon a encert
-    for (int i = 0; i < s->dim * s->dim; i++)
-    {
+    
+    //genera les lletres de la sopa de lletres
+    for (int i = 0; i < s->dim * s->dim; i++){
         s->encertades[i] = false;
         // Generem una lletra aleatoriament
         s->lletres[i] = 'A' + (rand() % ('Z'-'A'));
     }
 
-    s->n_par = 5;
-    strcpy(s->par[0].ll, "ALZINA");
-    strcpy(s->par[1].ll, "ARBUST");
-    strcpy(s->par[2].ll, "BOLET");
-    strcpy(s->par[3].ll, "CAMI");
-    strcpy(s->par[4].ll, "PEDRA");
+    //emmagatzemem les paraules a l'array s->par[n].ll
+    for(a = 0; a < s->n_par; a++){
+         strcpy(s->par[a].ll, dades[a]);    //copia les paraules d'una taula a altra
+         //aprofitem per desmarcar aquestes paraules com posibles encerts
+         s->par[a].enc = false;
+    }
+    //contador d'encerts a 0
+    s->n_encerts = 0;
+   
+    //TO DO...
+    //- inserir paraules de l'array a la cadena de text de forma completament aleatoria
+}
 
+ /*
     s->n_encerts = 2;
     s->par[0].enc = false;
     s->par[1].enc = true;
     s->par[2].enc = true;
     s->par[3].enc = false;
     s->par[4].enc = false;
-
+ 
     // Ara posem un parell de paraules a la sopa com si s'haguessin encertat
     s->lletres[5] = 'B'; s->encertades[5] = true;
     s->lletres[6] = 'O'; s->encertades[6] = true;
@@ -69,8 +77,7 @@ void genera_sopa(sopa_t *s)
     s->lletres[65 + 4 * s->dim] = 'U'; s->encertades[65 + 4 * s->dim] = true;
     s->lletres[65 + 5 * s->dim] = 'S'; s->encertades[65 + 5 * s->dim] = true;
     s->lletres[65 + 6 * s->dim] = 'T'; s->encertades[65 + 6 * s->dim] = true;
-    
-}
+    */
 
 
 /* Mostra una lletra segons si pertany a encert o no. No caldria modificar */
@@ -85,9 +92,7 @@ void mostra_lletra(char ll, bool enc)
     else
     {
         printf(" %c", ll);
-    }
-    
-            
+    }   
 }
 
 
@@ -98,13 +103,15 @@ void mostra_sopa (sopa_t s)
     // Mostrem els numeros de columna
     printf("\033[0;31m");   // Color 
     printf("  ");
+
+    /*
     for (int i = 10; i < s.dim + 1; i+=10)
     {
         for (int j=0; j < 18; j++)
             printf(" ");
-        printf(" %d", i/10);
-
+            printf(" %d", i/10);
     }
+    */
 
     printf("\n  ");   
     for (int i = 0; i < s.dim; i++)
@@ -156,7 +163,7 @@ void mostra_sopa (sopa_t s)
 int demanar_mida(){
     int mida;
     do{
-        printf("Introdueix la mida de la sopa de lletres. Recorda que és un cuadrat de costat mínim 10 i màxim 40.\n");
+        printf("\n\nIntrodueix la mida de la sopa de lletres. Recorda que és un cuadrat de costat mínim 10 i màxim 40.\nMida: ");
         scanf("%i", &mida);
     }while (mida < 10 || mida > 40);
     return mida;
@@ -329,7 +336,7 @@ void ordenar_paraules(char **dades, int i, int j){
 int main(int argc, char *argv[]) {
     FILE *f;
     sopa_t sopa;
-    unsigned int mida_t, i;     //variable a on emmagatzenare la mida de la taula
+    unsigned int mida_s, mida_t, i;     //mida_s: mida sopa | mida_t: mida taula de paraules
     bool validate = false;
     char**dades;
 
@@ -351,6 +358,16 @@ int main(int argc, char *argv[]) {
             printf("\n%s",dades[a]);    //a dades hi ha les paraules de l'arxiu
         }
 
+        //mida_s = demanar_mida();        //emmagatzema a la variable mida_s la mida que tindra la sopa de lletres (recordar que sera n*n)
+        mida_s = 20;
+        sopa.n_par = mida_t;            //mida_t te la dimensio de la taula de paraules, aixi que asignarem aquesta informacio dintre de el struct
+        genera_sopa(dades, mida_s, &sopa);     // La generem (exemple)
+
+        mostra_sopa(sopa);      // La mostrem per pantalla
+
+
+
+
         //TO DO...
         /*
         typedef struct 
@@ -371,9 +388,9 @@ int main(int argc, char *argv[]) {
     }
     
 
-    genera_sopa(&sopa);     // La generem (exemple)
+ 
 
-    //mostra_sopa(sopa);      // La mostrem per pantalla
-    revelar_sopa(sopa);
+    
+   // revelar_sopa(sopa);
     return 0;
 }
