@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
 
 #define MIN_LLETRES 4
@@ -23,26 +24,32 @@ typedef struct
     char *lletres;  // Taula amb les lletres
     bool *encertades;   // Les lletres son d'una paraula que s'ha encertat
     paraula_t par[MAX_PARAULES];    // Les paraules
+    int **localitza_paraules;    //array a on localitzarem les lletres de les paraules generades a la sopa
     int n_par;  // Nombre de paraules
     int n_encerts;    // Nombre de paraules encertades
 } sopa_t;
 
-/* Aquesta funcio genera la sopa de lletres, a partir del fitxer i altres parametres */
-/* que ja decidireu. En aquest cas només l'emplena amb una SOPA d'EXEMPLE, es a dir */
-/* que haureu de fer la vostra pròpia. */
-void genera_sopa(char**dades, int mida, sopa_t *s){
-    int a;
-    s->dim = mida;    // Mida màxima: 40 x 40
-    s->lletres = malloc(s->dim * s->dim * sizeof(char));   // Espai per a les lletres
-    s->encertades = malloc(s->dim * s->dim * sizeof(char)); // Per saber si una lletra correspon a encert
-    
-    //genera les lletres de la sopa de lletres
-    for (int i = 0; i < s->dim * s->dim; i++){
-        s->encertades[i] = false;
-        // Generem una lletra aleatoriament
-        s->lletres[i] = 'A' + (rand() % ('Z'-'A'));
-    }
+//TO DO...
+//function that returns random number to try a candidate to be a word
 
+
+
+
+
+//@brief fa una copia de mida identica de l'array de paraules a l'array de posicions de les lletres de les paraules
+//(l'objectiu es fer que hi hagi 2 arrays equivalents en el que tinguem les paraules emmagatzemades i de forma paralela poder coneixer quina posicio ha agafat a la sopa cada lletra de la paraula)
+void ini_localitzacio_sopa(sopa_t *s){
+    short k;
+    s->localitza_paraules = malloc(s->n_par*sizeof(int*));     //dimensions per a emmagatzemar les posicions de cada lletra de cada paraula
+    //ara per a cada paraula generarem un altre array d'enters dintre de s->localitza_paraules
+    for(k = 0; k < s->n_par; k++){
+         s->localitza_paraules[k] = (int*) malloc(strlen(s->par[k].ll)* sizeof(int*));  //longitud de cada paraula 
+    }
+}
+
+//@fa una copia del contingut de la taula dades a s->paraules i modifica encerts a cero. D'aquesta forma ja podem començar la generacio de la taula.
+void preconfigura_struct(char**dades, sopa_t *s){
+    int a;
     //emmagatzemem les paraules a l'array s->par[n].ll
     for(a = 0; a < s->n_par; a++){
          strcpy(s->par[a].ll, dades[a]);    //copia les paraules d'una taula a altra
@@ -51,9 +58,58 @@ void genera_sopa(char**dades, int mida, sopa_t *s){
     }
     //contador d'encerts a 0
     s->n_encerts = 0;
+}
+
+
+void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
+    int b, c, long_par;
+    short word = 0;
+    //strlen(s->par[word].ll)
+    for(b = 0; b < mida; b++){
+        for(c = 0; c < mida; c++){
+            //posicions[b][c] = (rand() % sizeof(s->lletres));
+            //printf("\n(%d,%d)",b, c);
+            if(0 == true){
+                word++;     //seguent paraula
+            }
+        }   
+    }
+
+
+
+    //printf("\n%s", s->lletres);
+    printf("\n%d * %d", b, c);
+    printf("\ncheck: %c", s->lletres[(b*c)-1]); //funciona
+}
+
+
+
+
+/* Aquesta funcio genera la sopa de lletres, a partir del fitxer i altres parametres */
+/* que ja decidireu. En aquest cas només l'emplena amb una SOPA d'EXEMPLE, es a dir */
+/* que haureu de fer la vostra pròpia. */
+void genera_sopa(char**dades, int mida, sopa_t *s){
+    srand(time(NULL));      //seed per a poder treballar amb aleatoris
+    char**posicions;
+
+    s->dim = mida;    // Mida màxima: 40 x 40
+    s->lletres = malloc(s->dim * s->dim * sizeof(char));   // Espai per a les lletres
+    s->encertades = malloc(s->dim * s->dim * sizeof(char)); // Per saber si una lletra correspon a encert
+
+    //genera les lletres de la sopa de lletres
+    for (int i = 0; i < s->dim * s->dim; i++){
+        s->encertades[i] = false;
+        // Generem una lletra aleatoriament
+        s->lletres[i] = 'A' + (rand() % ('Z'-'A'));
+    }
+
    
+    preconfigura_struct(dades, s);   //set de dades de sopa_t per iniciar partida
+    ini_localitzacio_sopa(s);       //prepara una taula a on emmagatzemara les dades de cada paraula a la sopa generada
+
     //TO DO...
     //- inserir paraules de l'array a la cadena de text de forma completament aleatoria
+     generar_posicions_aleatories(s, mida, posicions);
 }
 
  /*
@@ -329,6 +385,12 @@ void ordenar_paraules(char **dades, int i, int j){
         mescla(dades, i, m, j);
     }
 }
+void mostrar_paraules(char **dades, unsigned int mida_t){
+    printf("\nHi ha un total de %d paraules:\n", mida_t);
+        for(int a = 0; a < mida_t; a++){
+            printf("%s\n",dades[a]);    //a dades hi ha les paraules de l'arxiu
+        }
+}
 
 
 //arxiu per parametre, per accedir a la direcció cal treballar amb: argv[1]
@@ -353,11 +415,7 @@ int main(int argc, char *argv[]) {
         carregar_paraules(argv[1], dades);         //carreguem les paraules a dintre d'un array
         //ordenem les paraules mitjançant un algorsime d'ordenacio: merge sort
         ordenar_paraules(dades,i,mida_t-1);      //j = mida_t - 1 ja que volem n posicions desde 0 fins a n
-        
-         for(int a = 0; a < mida_t; a++){
-            printf("\n%s",dades[a]);    //a dades hi ha les paraules de l'arxiu
-        }
-
+        mostrar_paraules(dades, mida_t);        //mostra les paraules que es troben a l'arxiu
         //mida_s = demanar_mida();        //emmagatzema a la variable mida_s la mida que tindra la sopa de lletres (recordar que sera n*n)
         mida_s = 20;
         sopa.n_par = mida_t;            //mida_t te la dimensio de la taula de paraules, aixi que asignarem aquesta informacio dintre de el struct
