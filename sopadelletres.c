@@ -61,9 +61,40 @@ void preconfigura_struct(char**dades, sopa_t *s){
 }
 
 
+bool comprova_pos_generacio(sopa_t *s, short mida_par){
+    //to do
+}
+
+
+
+
+
 void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
-    int b, c, long_par;
+    int b, c, d, e = 0, long_par;
     short word = 0;
+    bool fin;
+    int rand_num;
+    for(d = 0; d < s->n_par; d++){      //itera sobre paraules a sopa_t
+        rand_num = rand() % ((int) strlen(s->lletres)-1);       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
+        // printf("\n%d", rand_num);
+        fin = false;
+        for(e = 0; e < ((int)strlen(s->par[e].ll)+1); e++){     //itera per lletres de la paraula especificada
+            //printf("\n%s", s->par[e].ll );
+            if(s->par[e].ll[e] != '\0'){
+                printf("\n%c",s->par[d].ll[e]);
+                //printf("\n%d",rand_num);
+                //printf("\n%c",  s->lletres[rand_num]);
+                //printf("%s",s->par[d].ll);
+                rand_num++;     //to do... a altres posicions, per ara nomes treballa amb paraules de esquerra a dreta
+            }
+            //s->lletres[rand_num] =
+            
+            //s->localitza_paraules[d][e] = rand_num;
+              
+        }
+        printf("\n");
+        
+    }
     //strlen(s->par[word].ll)
     for(b = 0; b < mida; b++){
         for(c = 0; c < mida; c++){
@@ -417,7 +448,7 @@ int main(int argc, char *argv[]) {
         ordenar_paraules(dades,i,mida_t-1);      //j = mida_t - 1 ja que volem n posicions desde 0 fins a n
         mostrar_paraules(dades, mida_t);        //mostra les paraules que es troben a l'arxiu
         //mida_s = demanar_mida();        //emmagatzema a la variable mida_s la mida que tindra la sopa de lletres (recordar que sera n*n)
-        mida_s = 20;
+        mida_s = 10;
         sopa.n_par = mida_t;            //mida_t te la dimensio de la taula de paraules, aixi que asignarem aquesta informacio dintre de el struct
         genera_sopa(dades, mida_s, &sopa);     // La generem (exemple)
 
