@@ -50,19 +50,44 @@ void ini_localitzacio_sopa(sopa_t *s){
 //@fa una copia del contingut de la taula dades a s->paraules i modifica encerts a cero. D'aquesta forma ja podem començar la generacio de la taula.
 void preconfigura_struct(char**dades, sopa_t *s){
     int a;
+    bool fi_par = false;
     //emmagatzemem les paraules a l'array s->par[n].ll
     for(a = 0; a < s->n_par; a++){
-         strcpy(s->par[a].ll, dades[a]);    //copia les paraules d'una taula a altra
-         //aprofitem per desmarcar aquestes paraules com posibles encerts
-         s->par[a].enc = false;
+             strcpy(s->par[a].ll, dades[a]);    //copia les paraules d'una taula a altra
+             //aprofitem per desmarcar aquestes paraules com posibles encerts
+            s->par[a].enc = false;
     }
     //contador d'encerts a 0
     s->n_encerts = 0;
 }
 
 
-bool comprova_pos_generacio(sopa_t *s, short mida_par){
-    //to do
+bool overlow_taula(int long_par, int rand, int mida, int mida_sopa){
+    bool result = false;
+    if((long_par + (rand)) < mida_sopa || (long_par - (rand)) > 0){
+        //es possible utilitar aquesta paraula
+        result = true;
+    }
+    return result;
+}
+
+//@brief comprova que la posicio es completament valida i no sobrepasara en cap moment el minim ni el maxim de la taula
+/*
+@pre example: Taula -> | | | | | | | |
+              Pos ->    0 1 2 3 4 5 6
+     tenim la seguent paraula: "HOLA",
+     si volem inserir la paraula com maxim podrem començar a escriure la paraula desde la posicio 3 -> | | | |H|O|L|A|
+     si comencem mes tard pasaria el seguent | | | | |H|O|L|, aquest cas no es pot donar, i a la inversa tampoc. (to do...)
+*/
+bool no_extrem_sopa(char *par, int candidat_rand, int mida){
+    int posicio = candidat_rand % mida;     //si per exemple tinc el numero 25 jo puc obtindre el 5 fent el modul entre 10 d'aquesta operacio
+    bool no_overflow;
+   if(((int) strlen(par)+ posicio) > mida && overlow_taula((int)strlen(par), posicio, mida, ((mida*mida)-1))){
+        //overflow, salta a la segünet linea i jo només vull paraules a una mateixa linea
+        no_overflow = false;
+   }else{
+    no_overflow = true;
+   }
 }
 
 
@@ -70,29 +95,42 @@ bool comprova_pos_generacio(sopa_t *s, short mida_par){
 
 
 void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
-    int b, c, d, e = 0, long_par;
+    int b, c, d, e = 0, i = 0, long_par;
     short word = 0;
     bool fin;
     int rand_num;
+
     for(d = 0; d < s->n_par; d++){      //itera sobre paraules a sopa_t
+    i=0;
         rand_num = rand() % ((int) strlen(s->lletres)-1);       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
-        // printf("\n%d", rand_num);
-        fin = false;
-        for(e = 0; e < ((int)strlen(s->par[e].ll)+1); e++){     //itera per lletres de la paraula especificada
-            //printf("\n%s", s->par[e].ll );
-            if(s->par[e].ll[e] != '\0'){
-                printf("\n%c",s->par[d].ll[e]);
-                //printf("\n%d",rand_num);
-                //printf("\n%c",  s->lletres[rand_num]);
-                //printf("%s",s->par[d].ll);
-                rand_num++;     //to do... a altres posicions, per ara nomes treballa amb paraules de esquerra a dreta
+       while(!fin){
+            rand_num = rand() % ((int) strlen(s->lletres)-1);       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
+            if(no_extrem_sopa(s->par[d].ll, rand_num, mida)){
+                fin = true;
             }
-            //s->lletres[rand_num] =
-            
-            //s->localitza_paraules[d][e] = rand_num;
-              
-        }
+       }
+        printf("\n%d", (int) strlen(s->par[e].ll));
+       printf("   ->  %d", (int)strlen(s->par[d].ll));
+       for(e = 0; e < ((int) strlen(s->par[d].ll)); e++){
+        s->localitza_paraules[d][e] = rand_num;         //posincions que anira omplint
+        rand_num++;     //com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
+        printf("\n%c",s->par[d].ll[e]);
+        /*
+        Breu exemple de funcionament
+        ALZINA   ->  6 lletres, 12, 13, 14, 15, 16, 17, 18
+        ARBUST   ->  6 lletres, 51, 52, 53, 54, 55, 56, 57
+        BOLET   ->  5 lletres, 62, 63, 64, 65, 66, 67
+        CAMI   ->  4 lletres, 21, 22, 23, 24, 25
+        PEDRA   ->  5 lletres, 70, 71, 72, 73, 74, 75
+        ROCA   ->  4 lletres, 93, 94, 95, 96, 97
+        */
+        //a continuacio inserim lletra a lletra a la taula de la sopa
+        s->lletres[rand_num] = s->par[d].ll[e];
+        printf(", %d", s->localitza_paraules[d][e]);
+       } 
+       
         printf("\n");
+       
         
     }
     //strlen(s->par[word].ll)
