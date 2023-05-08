@@ -64,7 +64,7 @@ void preconfigura_struct(char**dades, sopa_t *s){
 
 bool overlow_taula(int long_par, int rand, int mida, int mida_sopa){
     bool result = false;
-    if((long_par + (rand)) < mida_sopa || (long_par - (rand)) > 0){
+    if((long_par + (rand)) <= mida_sopa || (long_par - (rand)) > 0){
         //es possible utilitar aquesta paraula
         result = true;
     }
@@ -82,7 +82,7 @@ bool overlow_taula(int long_par, int rand, int mida, int mida_sopa){
 bool no_extrem_sopa(char *par, int candidat_rand, int mida){
     int posicio = candidat_rand % mida;     //si per exemple tinc el numero 25 jo puc obtindre el 5 fent el modul entre 10 d'aquesta operacio
     bool no_overflow;
-   if(((int) strlen(par)+ posicio) > mida && overlow_taula((int)strlen(par), posicio, mida, ((mida*mida)-1))){
+   if(((int) strlen(par)+ posicio) > mida && overlow_taula((int)strlen(par), candidat_rand, mida, ((mida*mida)))){
         //overflow, salta a la segünet linea i jo només vull paraules a una mateixa linea
         no_overflow = false;
    }else{
