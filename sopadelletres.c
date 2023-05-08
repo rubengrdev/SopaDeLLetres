@@ -64,7 +64,7 @@ void preconfigura_struct(char**dades, sopa_t *s){
 
 bool overlow_taula(int long_par, int rand, int mida, int mida_sopa){
     bool result = false;
-    if((long_par + (rand)) <= mida_sopa || (long_par - (rand)) > 0){
+    if((long_par + (rand)) < mida_sopa || (long_par - (rand)) > 0){
         //es possible utilitar aquesta paraula
         result = true;
     }
@@ -90,8 +90,31 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida){
    }
 }
 
+bool no_repeticio(sopa_t *s, int rand){
+    bool coincidencia = false;
+    int a, b;
+    for(a = 0; a < s->n_par; a++){
+        for(b = 0; b < (int) strlen(s->par[a].ll); b++){
+            if(s->localitza_paraules[a][b] == rand){        //cerca d'una coincidencia
+                coincidencia = true;
+            }
+        }
+    }
+   
+    return coincidencia;
+}
 
-
+//@brief retorna un valor aleatori seguint les instruccions donades de limits i no repeticio per a la sopa
+int genera_aleatori(sopa_t*s,char*paraula, int rand_num, int mida){
+    bool fin;
+    while(!fin){
+        rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
+        if(no_extrem_sopa(paraula, rand_num, mida)){
+                fin = true;
+        }
+    }
+    return rand_num;
+}
 
 
 void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
@@ -101,35 +124,37 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
     int rand_num;
 
     for(d = 0; d < s->n_par; d++){      //itera sobre paraules a sopa_t
-    i=0;
-        rand_num = rand() % ((int) strlen(s->lletres)-1);       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
-       while(!fin){
-            rand_num = rand() % ((int) strlen(s->lletres)-1);       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
+        
+        rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
+        /*
+        while(!fin  && !no_repeticio(s,rand_num)){
+            rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
             if(no_extrem_sopa(s->par[d].ll, rand_num, mida)){
                 fin = true;
             }
-       }
-        printf("\n%d", (int) strlen(s->par[e].ll));
-       printf("   ->  %d", (int)strlen(s->par[d].ll));
-       for(e = 0; e < ((int) strlen(s->par[d].ll)); e++){
-        s->localitza_paraules[d][e] = rand_num;         //posincions que anira omplint
-        rand_num++;     //com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
-        printf("\n%c",s->par[d].ll[e]);
-        /*
-        Breu exemple de funcionament
-        ALZINA   ->  6 lletres, 12, 13, 14, 15, 16, 17, 18
-        ARBUST   ->  6 lletres, 51, 52, 53, 54, 55, 56, 57
-        BOLET   ->  5 lletres, 62, 63, 64, 65, 66, 67
-        CAMI   ->  4 lletres, 21, 22, 23, 24, 25
-        PEDRA   ->  5 lletres, 70, 71, 72, 73, 74, 75
-        ROCA   ->  4 lletres, 93, 94, 95, 96, 97
+        }
         */
-        //a continuacio inserim lletra a lletra a la taula de la sopa
-        s->lletres[rand_num] = s->par[d].ll[e];
-        printf(", %d", s->localitza_paraules[d][e]);
-       } 
-       
-        printf("\n");
+        genera_aleatori(s, s->par[d].ll,rand_num, mida);        //funcio per a generar un numero aleatori
+
+        printf("\n%d", (int) strlen(s->par[e].ll));
+        printf("   ->  %d", (int)strlen(s->par[d].ll));
+        for(e = 0; e < ((int) strlen(s->par[d].ll)); e++){
+             s->localitza_paraules[d][e] = rand_num;         //posincions que anira omplint
+                rand_num++;     //com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
+                printf("\n%c",s->par[d].ll[e]);
+            /*
+            Breu exemple de funcionament
+            ALZINA   ->  6 lletres, 12, 13, 14, 15, 16, 17, 18
+            ARBUST   ->  6 lletres, 51, 52, 53, 54, 55, 56, 57
+            BOLET   ->  5 lletres, 62, 63, 64, 65, 66, 67
+            CAMI   ->  4 lletres, 21, 22, 23, 24, 25
+            PEDRA   ->  5 lletres, 70, 71, 72, 73, 74, 75
+            ROCA   ->  4 lletres, 93, 94, 95, 96, 97
+            */
+            //a continuacio inserim lletra a lletra a la taula de la sopa
+            s->lletres[rand_num] = s->par[d].ll[e];
+            printf(", %d", s->localitza_paraules[d][e]);
+        }
        
         
     }
