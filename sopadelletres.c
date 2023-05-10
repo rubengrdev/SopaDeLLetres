@@ -129,26 +129,19 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
     int rand_num;
 
     for(d = 0; d < s->n_par; d++){      //itera sobre paraules a sopa_t
- 
-       
-        printf("\n%d", (int) strlen(s->par[e].ll));
-        printf("   ->  %d", (int)strlen(s->par[d].ll));
+        printf("\n%d", (int) strlen(s->par[e].ll)); printf("   ->  %d", (int)strlen(s->par[d].ll));
         do{
                  //rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
-               // genera_aleatori(s, s->par[d].ll, rand_num, mida);
-        }while(!comprova_aleatoris_existents);
+               rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida);
+        }while(!comprova_aleatoris_existents(s, s->par[d].ll, rand_num));
         for(e = 0; e < ((int) strlen(s->par[d].ll)); e++){
-            
-            
             s->localitza_paraules[d][e] = rand_num;         //posicions que anira omplint
             rand_num++;     //com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
-                printf("\n%c",s->par[d].ll[e]);
-            //a continuacio inserim lletra a lletra a la taula de la sopa
+                
             s->lletres[rand_num] = s->par[d].ll[e];
+            printf("\n%c",s->par[d].ll[e]);
             printf(", %d", s->localitza_paraules[d][e]);
         }
-       
-        
     }
 
 
