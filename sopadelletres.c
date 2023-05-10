@@ -3,7 +3,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
-
+/*CONSTANTS PER A DEFINIR DIRECCIO DE LA PARAULA*/
+#define forward 0
+#define backward 1
+#define updown 2
+#define downup 3
 
 #define MIN_LLETRES 4
 #define MAX_LLETRES 8
@@ -16,6 +20,7 @@ typedef struct
 {
     char ll[MAX_LLETRES + 1];   // Lletres de la paraula (comptem centinella)
     bool enc;   // La paraula s'ha encertat
+    int direccio;   //atribut definit per les constants de direccio
 } paraula_t;
 
 typedef struct 
@@ -47,21 +52,61 @@ void ini_localitzacio_sopa(sopa_t *s){
     }
 }
 
+//asigna una direccio a les paraules de la taula
+void defineix_direccio(sopa_t*s){
+    int aleat, i; 
+    for(i = 0; i < s->n_par; i++){
+        s->par[i].direccio = rand() % 2;
+    }
+}
+
+
+//@brief funcio que genera la inversa de la cadena, es a dir, organitza en sentit contrari la paraula.
+void reversa_cadena(char *par)  
+{  
+    int i, longitud;
+    int t_par;  
+    longitud = strlen(par); 
+    for (i = 0; i < (longitud/2); i++)  
+    {  
+        t_par = par[i];  
+        par[i] = par[longitud-i-1];  
+        par[longitud- i-1] = t_par;  
+    }  
+}  
+
+
+
+
 //@fa una copia del contingut de la taula dades a s->paraules i modifica encerts a cero. D'aquesta forma ja podem començar la generacio de la taula.
 void preconfigura_struct(char**dades, sopa_t *s){
-    int a;
+    int a, b;
     bool fi_par = false;
+    char*t_par;
+      //asigna direccions a les paraules
+    defineix_direccio(s);
     //emmagatzemem les paraules a l'array s->par[n].ll
     for(a = 0; a < s->n_par; a++){
-             strcpy(s->par[a].ll, dades[a]);    //copia les paraules d'una taula a altra
+        switch(s->par[a].direccio){
+            case forward:
+                strcpy(s->par[a].ll, dades[a]);
+            break;
+            case backward:
+                reversa_cadena(dades[a]);
+                strcpy(s->par[a].ll, dades[a]);
+            break;
+        }
              //aprofitem per desmarcar aquestes paraules com posibles encerts
             s->par[a].enc = false;
     }
     //contador d'encerts a 0
     s->n_encerts = 0;
+   
+    
+    
 }
 
-
+//@brief comprova que no sobrepasa el llimit de la taula, es a dir, si la taula te 100 posicions no pot tindre una paraula que comenci a la posicio 100 i acabi a la 105.
 bool overlow_taula(int long_par, int rand, int mida, int mida_sopa){
     bool result = false;
     if((long_par + (rand)) < mida_sopa || (long_par - (rand)) > 0){
@@ -130,14 +175,13 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
 
     for(d = 0; d < s->n_par; d++){      //itera sobre paraules a sopa_t
         printf("\n%d", (int) strlen(s->par[e].ll)); printf("   ->  %d", (int)strlen(s->par[d].ll));
-        do{
-                 //rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
-               rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida);
+        do{ 
+               rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida);       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
         }while(!comprova_aleatoris_existents(s, s->par[d].ll, rand_num));
+        
         for(e = 0; e < ((int) strlen(s->par[d].ll)); e++){
             s->localitza_paraules[d][e] = rand_num;         //posicions que anira omplint
             rand_num++;     //com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
-                
             s->lletres[rand_num] = s->par[d].ll[e];
             printf("\n%c",s->par[d].ll[e]);
             printf(", %d", s->localitza_paraules[d][e]);
