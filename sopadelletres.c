@@ -67,8 +67,7 @@ void reversa_cadena(char *par)
     int i, longitud;
     int t_par;  
     longitud = strlen(par); 
-    for (i = 0; i < (longitud/2); i++)  
-    {  
+    for (i = 0; i < (longitud/2); i++) {  
         t_par = par[i];  
         par[i] = par[longitud-i-1];  
         par[longitud- i-1] = t_par;  
@@ -101,9 +100,6 @@ void preconfigura_struct(char**dades, sopa_t *s){
     }
     //contador d'encerts a 0
     s->n_encerts = 0;
-   
-    
-    
 }
 
 //@brief comprova que no sobrepasa el llimit de la taula, es a dir, si la taula te 100 posicions no pot tindre una paraula que comenci a la posicio 100 i acabi a la 105.
@@ -187,12 +183,6 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
             printf(", %d", s->localitza_paraules[d][e]);
         }
     }
-
-
-
-
-
-    
     //strlen(s->par[word].ll)
     for(b = 0; b < mida; b++){
         for(c = 0; c < mida; c++){
@@ -203,9 +193,6 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
             }
         }   
     }
-
-
-
     //printf("\n%s", s->lletres);
     printf("\n%d * %d", b, c);
     printf("\ncheck: %c", s->lletres[(b*c)-1]); //funciona
