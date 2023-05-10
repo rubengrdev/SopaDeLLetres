@@ -90,19 +90,7 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida){
    }
 }
 
-bool no_repeticio(sopa_t *s, int rand){
-    bool coincidencia = false;
-    int a, b;
-    for(a = 0; a < s->n_par; a++){
-        for(b = 0; b < (int) strlen(s->par[a].ll); b++){
-            if(s->localitza_paraules[a][b] == rand){        //cerca d'una coincidencia
-                coincidencia = true;
-            }
-        }
-    }
-   
-    return coincidencia;
-}
+
 
 //@brief retorna un valor aleatori seguint les instruccions donades de limits i no repeticio per a la sopa
 int genera_aleatori(sopa_t*s,char*paraula, int rand_num, int mida){
@@ -116,6 +104,23 @@ int genera_aleatori(sopa_t*s,char*paraula, int rand_num, int mida){
     return rand_num;
 }
 
+//@brief volem comprovar que cap lletra es "trepitja" amb alguna altra previament especificada
+bool comprova_aleatoris_existents(sopa_t*s, char*paraula,int inici_par){
+    int i, j, fi_par = ((int) strlen(paraula) + inici_par);
+    bool valid = true;
+
+    for(i = 0; i < s->n_par; i++){
+        for(j = 0; j < (int) strlen(s->par[i].ll); j++){
+            //comprova que l'aleatori seleccionat no afecta a cap altre aleatori existent
+            if(s->localitza_paraules[i][j] <= fi_par && s->localitza_paraules[i][j] >= inici_par && s->localitza_paraules[i][j]){
+                valid = false;
+            }
+        }
+    }
+    return valid;
+}
+
+
 
 void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
     int b, c, d, e = 0, i = 0, long_par;
@@ -124,33 +129,20 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
     int rand_num;
 
     for(d = 0; d < s->n_par; d++){      //itera sobre paraules a sopa_t
-        
-        rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
-        /*
-        while(!fin  && !no_repeticio(s,rand_num)){
-            rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
-            if(no_extrem_sopa(s->par[d].ll, rand_num, mida)){
-                fin = true;
-            }
-        }
-        */
-        genera_aleatori(s, s->par[d].ll,rand_num, mida);        //funcio per a generar un numero aleatori
-
+ 
+       
         printf("\n%d", (int) strlen(s->par[e].ll));
         printf("   ->  %d", (int)strlen(s->par[d].ll));
+        do{
+                 //rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
+               // genera_aleatori(s, s->par[d].ll, rand_num, mida);
+        }while(!comprova_aleatoris_existents);
         for(e = 0; e < ((int) strlen(s->par[d].ll)); e++){
-             s->localitza_paraules[d][e] = rand_num;         //posincions que anira omplint
-                rand_num++;     //com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
+            
+            
+            s->localitza_paraules[d][e] = rand_num;         //posicions que anira omplint
+            rand_num++;     //com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
                 printf("\n%c",s->par[d].ll[e]);
-            /*
-            Breu exemple de funcionament
-            ALZINA   ->  6 lletres, 12, 13, 14, 15, 16, 17, 18
-            ARBUST   ->  6 lletres, 51, 52, 53, 54, 55, 56, 57
-            BOLET   ->  5 lletres, 62, 63, 64, 65, 66, 67
-            CAMI   ->  4 lletres, 21, 22, 23, 24, 25
-            PEDRA   ->  5 lletres, 70, 71, 72, 73, 74, 75
-            ROCA   ->  4 lletres, 93, 94, 95, 96, 97
-            */
             //a continuacio inserim lletra a lletra a la taula de la sopa
             s->lletres[rand_num] = s->par[d].ll[e];
             printf(", %d", s->localitza_paraules[d][e]);
@@ -158,6 +150,12 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
        
         
     }
+
+
+
+
+
+    
     //strlen(s->par[word].ll)
     for(b = 0; b < mida; b++){
         for(c = 0; c < mida; c++){
