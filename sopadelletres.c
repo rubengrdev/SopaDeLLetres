@@ -34,11 +34,6 @@ typedef struct
     int n_encerts;    // Nombre de paraules encertades
 } sopa_t;
 
-//TO DO...
-//function that returns random number to try a candidate to be a word
-
-
-
 
 
 //@brief fa una copia de mida identica de l'array de paraules a l'array de posicions de les lletres de les paraules
@@ -120,28 +115,40 @@ bool overlow_taula(int long_par, int rand, int mida, int mida_sopa){
      si volem inserir la paraula com maxim podrem començar a escriure la paraula desde la posicio 3 -> | | | |H|O|L|A|
      si comencem mes tard pasaria el seguent | | | | |H|O|L|, aquest cas no es pot donar, i a la inversa tampoc. (to do...)
 */
-bool no_extrem_sopa(char *par, int candidat_rand, int mida){
+bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio){
     int posicio = candidat_rand % mida;     //si per exemple tinc el numero 25 jo puc obtindre el 5 fent el modul entre 10 d'aquesta operacio
-    bool no_overflow;
-   if(((int) strlen(par)+ posicio) > mida && overlow_taula((int)strlen(par), candidat_rand, mida, ((mida*mida)))){
-        //overflow, salta a la segünet linea i jo només vull paraules a una mateixa linea
-        no_overflow = false;
-   }else{
-    no_overflow = true;
-   }
+    bool no_overflow = false;
+    printf("\nAIXO ES LA MIDAAA!!!! %d, i la mida es %d, i la suma es %d", candidat_rand, posicio, (int) strlen(par)+ posicio);
+    if(overlow_taula((int)strlen(par), candidat_rand, mida, ((mida*mida)))){
+        switch(direccio){
+        case 0:
+            if((((int) strlen(par)+ posicio) < mida) ){
+                no_overflow = true;
+            }
+        break;
+        case 1:
+        if((((int) strlen(par) - posicio) > 0) ){
+                no_overflow = true;
+            }
+        break;
+    }
+    }
+    return no_overflow;
 }
 
 
 
 //@brief retorna un valor aleatori seguint les instruccions donades de limits i no repeticio per a la sopa
-int genera_aleatori(sopa_t*s,char*paraula, int rand_num, int mida){
+int genera_aleatori(sopa_t*s,char*paraula, int rand_num, int mida, int dir){
     bool fin;
-    while(!fin){
-        rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
-        if(no_extrem_sopa(paraula, rand_num, mida)){
-                fin = true;
+    do{
+         rand_num = rand() % ((int) strlen(s->lletres));       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
+        if(no_extrem_sopa(paraula, rand_num, mida, s->par[dir].direccio)){
+            fin = true;
+        }else{
+            fin = false;
         }
-    }
+    }while(!fin);
     return rand_num;
 }
 
@@ -172,7 +179,7 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
     for(d = 0; d < s->n_par; d++){      //itera sobre paraules a sopa_t
         printf("\n%d", (int) strlen(s->par[e].ll)); printf("   ->  %d", (int)strlen(s->par[d].ll));
         do{ 
-               rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida);       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
+               rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d);       //retorna un numero aleatori respectant les posicions maximes indicades a la taula
         }while(!comprova_aleatoris_existents(s, s->par[d].ll, rand_num));
         
         for(e = 0; e < ((int) strlen(s->par[d].ll)); e++){
@@ -181,9 +188,9 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char**posicions){
             s->lletres[rand_num] = s->par[d].ll[e];
             printf("\n%c",s->par[d].ll[e]);
             printf(", %d", s->localitza_paraules[d][e]);
+            s->encertades[(int)s->localitza_paraules[d][e]+1] = true;
         }
     }
-    //strlen(s->par[word].ll)
     for(b = 0; b < mida; b++){
         for(c = 0; c < mida; c++){
             //posicions[b][c] = (rand() % sizeof(s->lletres));
@@ -276,14 +283,14 @@ void mostra_sopa (sopa_t s)
     printf("\033[0;31m");   // Color 
     printf("  ");
 
-    /*
+    
     for (int i = 10; i < s.dim + 1; i+=10)
     {
         for (int j=0; j < 18; j++)
             printf(" ");
             printf(" %d", i/10);
     }
-    */
+    
 
     printf("\n  ");   
     for (int i = 0; i < s.dim; i++)
@@ -532,8 +539,8 @@ int main(int argc, char *argv[]) {
         //ordenem les paraules mitjançant un algorsime d'ordenacio: merge sort
         ordenar_paraules(dades,i,mida_t-1);      //j = mida_t - 1 ja que volem n posicions desde 0 fins a n
         mostrar_paraules(dades, mida_t);        //mostra les paraules que es troben a l'arxiu
-        //mida_s = demanar_mida();        //emmagatzema a la variable mida_s la mida que tindra la sopa de lletres (recordar que sera n*n)
-        mida_s = 10;
+        mida_s = demanar_mida();        //emmagatzema a la variable mida_s la mida que tindra la sopa de lletres (recordar que sera n*n)
+        //mida_s = 10;
         sopa.n_par = mida_t;            //mida_t te la dimensio de la taula de paraules, aixi que asignarem aquesta informacio dintre de el struct
         genera_sopa(dades, mida_s, &sopa);     // La generem (exemple)
 
