@@ -9,6 +9,8 @@
 #define updown 2
 #define downup 3
 
+#define TIMEOUT 1700
+
 #define MIN_LLETRES 4
 #define MAX_LLETRES 8
 #define MIN_PARAULES 4 // afegit extra, si no hi ha un minim de paraules no te molt sentit una sopa de lletres...
@@ -83,15 +85,14 @@ void preconfigura_struct(char **dades, sopa_t *s)
     // emmagatzemem les paraules a l'array s->par[n].ll
     for (a = 0; a < s->n_par; a++)
     {
-        switch (s->par[a].direccio)
+        if (s->par[a].direccio == 0 || s->par[a].direccio == 2)
         {
-        case forward:
             strcpy(s->par[a].ll, dades[a]);
-            break;
-        case backward:
+        }
+        else if (s->par[a].direccio == 1 || s->par[a].direccio == 3)
+        {
             reversa_cadena(dades[a]);
             strcpy(s->par[a].ll, dades[a]);
-            break;
         }
         // aprofitem per desmarcar aquestes paraules com posibles encerts
         s->par[a].enc = false;
@@ -116,7 +117,7 @@ bool overflow_taula(int long_par, int rand, int mida, int mida_sopa)
 bool overflow_taula_up_down(int long_par, int rand, int mida, int mida_sopa)
 {
     bool result = false;
-    if ((long_par*(rand)) < mida_sopa || (long_par - (rand)) > 0)
+    if (((long_par * (rand)) < mida_sopa || (long_par - (rand)) > 0) && rand != 9)
     {
         // es possible utilitar aquesta paraula
         result = true;
@@ -134,6 +135,7 @@ bool overflow_taula_up_down(int long_par, int rand, int mida, int mida_sopa)
 */
 bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio)
 {
+    int a;
     int posicio = candidat_rand % mida; // si per exemple tinc el numero 25 jo puc obtindre el 5 fent el modul entre 10 d'aquesta operacio
     bool no_overflow = false;
     if (overflow_taula((int)strlen(par), candidat_rand, mida, ((mida * mida))))
@@ -141,7 +143,7 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio)
         switch (direccio)
         {
         case 0:
-            if ((((int)strlen(par) + posicio) < mida))
+            if ((((int)strlen(par) + posicio) < mida))  //"parche" temporal per un problema amb el salt de linea
             {
                 no_overflow = true;
             }
@@ -152,7 +154,12 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio)
                 no_overflow = true;
             }
             break;
-        
+        case 2:
+            if ((((int)strlen(par)*mida + posicio) < mida*mida))
+            {
+                no_overflow = true;
+            }
+            break;
         }
     }
     return no_overflow;
@@ -161,6 +168,7 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio)
 //@brief retorna un valor aleatori seguint les instruccions donades de limits i no repeticio per a la sopa
 int genera_aleatori(sopa_t *s, char *paraula, int rand_num, int mida, int dir)
 {
+    short iterate = 0;
     bool fin;
     do
     {
@@ -173,12 +181,15 @@ int genera_aleatori(sopa_t *s, char *paraula, int rand_num, int mida, int dir)
         {
             fin = false;
         }
+        iterate++;
+        if (iterate == TIMEOUT)
+            fin = true;
     } while (!fin);
     return rand_num;
 }
 
 //@brief volem comprovar que cap lletra es "trepitja" amb alguna altra previament especificada
-bool comprova_aleatoris_existents(sopa_t *s, char *paraula, int inici_par)
+bool comprova_aleatoris_existents_horizontal(sopa_t *s, char *paraula, int inici_par)
 {
     int i, j, fi_par = ((int)strlen(paraula) + inici_par);
     bool valid = true;
@@ -213,7 +224,7 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char **posicions)
             do
             {
                 rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d) - 1; // retorna un numero aleatori respectant les posicions maximes indicades a la taula
-            } while (!comprova_aleatoris_existents(s, s->par[d].ll, rand_num));
+            } while (!comprova_aleatoris_existents_horizontal(s, s->par[d].ll, rand_num));
 
             for (e = 0; e < ((int)strlen(s->par[d].ll)); e++)
             {
@@ -224,12 +235,20 @@ void generar_posicions_aleatories(sopa_t *s, int mida, char **posicions)
                 printf(", %d", s->localitza_paraules[d][e]);
                 s->encertades[(int)s->localitza_paraules[d][e] + 1] = true;
             }
-            
+
             // printf("\n%s", s->lletres);
             printf("\n%d * %d", b, c);
             printf("\ncheck: %c", s->lletres[(b * c) - 1]); // funciona
         }
-        
+        if (s->par[e].direccio == 2)
+        {
+            printf("\nHoritzontal");
+            do
+            {
+                rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d) - 1; // retorna un numero aleatori respectant les posicions maximes indicades a la taula
+            } while (!comprova_aleatoris_existents_horizontal(s, s->par[d].ll, rand_num));
+            printf("\nNumero aleat: %d", rand_num);
+        }
     }
 }
 
