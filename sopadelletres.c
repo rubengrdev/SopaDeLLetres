@@ -55,23 +55,29 @@ void defineix_direccio(sopa_t *s)
     int aleat, i;
     for (i = 0; i < s->n_par; i++)
     {
-        s->par[i].direccio = rand() % 2;
+        s->par[i].direccio = rand() % 4;
         printf("\n%d", s->par[i].direccio);
     }
 }
 
 //@brief funcio que genera la inversa de la cadena, es a dir, organitza en sentit contrari la paraula.
-void reversa_cadena(char *par)
+void reversa_cadena(char *paraula)
 {
-    int i, longitud;
-    int t_par;
-    longitud = strlen(par);
-    for (i = 0; i < (longitud / 2); i++)
+    char *aux_paraula = malloc(strlen(paraula) + 1); // cadena auxiliar on guardaren paraula
+    int d = 0, i;
+
+    for (i = 0; paraula[i] != '\0'; i++)
     {
-        t_par = par[i];
-        par[i] = par[longitud - i - 1];
-        par[longitud - i - 1] = t_par;
+        aux_paraula[i] = paraula[i];
     }
+    aux_paraula[i] = '\0';
+
+    for (int len = strlen(paraula) - 1; len >= 0; len--)
+    {
+        paraula[d++] = aux_paraula[len]; // introduim els caracters de aux_paraula (des del darrer fins al primer) a paraula
+        // (des del primer fins al darrer)
+    }
+    free(aux_paraula);
 }
 
 //@fa una copia del contingut de la taula dades a s->paraules i modifica encerts a cero. D'aquesta forma ja podem començar la generacio de la taula.
@@ -105,7 +111,7 @@ void preconfigura_struct(char **dades, sopa_t *s)
 bool overflow_taula(int long_par, int rand, int mida, int mida_sopa)
 {
     bool result = false;
-    if ((long_par + (rand)) < mida_sopa || (long_par - (rand)) > 0)
+    if (((long_par + (rand)) < mida_sopa || (long_par - (rand)) > 0) && rand % mida != 0 && rand%mida !=9)
     {
         // es possible utilitar aquesta paraula
         result = true;
@@ -117,7 +123,7 @@ bool overflow_taula(int long_par, int rand, int mida, int mida_sopa)
 bool overflow_taula_up_down(int long_par, int rand, int mida, int mida_sopa)
 {
     bool result = false;
-    if (((long_par * (rand)) < mida_sopa || (long_par - (rand)) > 0) && rand != 9)
+    if ((rand) + long_par * mida < mida_sopa)
     {
         // es possible utilitar aquesta paraula
         result = true;
@@ -143,19 +149,31 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio)
         switch (direccio)
         {
         case 0:
-            if ((((int)strlen(par) + posicio) < mida))  //"parche" temporal per un problema amb el salt de linea
+            if ((((int)strlen(par) + posicio) < mida)) //"parche" temporal per un problema amb el salt de linea
             {
                 no_overflow = true;
             }
             break;
         case 1:
-            if ((((int)strlen(par) - posicio) > 0))
+            if ((((int)strlen(par) - posicio) > 0) && candidat_rand%mida != 0)
             {
                 no_overflow = true;
             }
             break;
+        }
+    }
+    if (overflow_taula_up_down((int)strlen(par), candidat_rand, mida, ((mida * mida))))
+    {
+        switch (direccio)
+        {
         case 2:
-            if ((((int)strlen(par)*mida + posicio) < mida*mida))
+            if (((posicio) + (int)strlen(par) * mida < (mida)) && posicio >= 0)
+            {
+                printf("\n%d\n", (posicio) + (int)strlen(par) * mida);
+                no_overflow = true;
+            }
+        case 3:
+            if (((posicio) + (int)strlen(par) * mida < (mida * mida) - mida) && posicio >= 0)
             {
                 no_overflow = true;
             }
@@ -163,6 +181,16 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio)
         }
     }
     return no_overflow;
+}
+
+//@brief petita funció que genera un error de TIMEOUT en el cas de que no ha pogut completar alguna accio (exemple: no hi ha lloc per una paraula)
+void timeout(int count, bool *exception)
+{
+    if (count >= (int)TIMEOUT)
+    {
+        *exception = true;
+        printf("\n%d hi ha problema", count);
+    }
 }
 
 //@brief retorna un valor aleatori seguint les instruccions donades de limits i no repeticio per a la sopa
@@ -183,23 +211,62 @@ int genera_aleatori(sopa_t *s, char *paraula, int rand_num, int mida, int dir)
         }
         iterate++;
         if (iterate == TIMEOUT)
+        {
             fin = true;
+            printf("\nTIMEOUT");
+        }
+
     } while (!fin);
     return rand_num;
 }
 
+
+
+
 //@brief volem comprovar que cap lletra es "trepitja" amb alguna altra previament especificada
-bool comprova_aleatoris_existents_horizontal(sopa_t *s, char *paraula, int inici_par)
+bool comprova_aleatoris_existents_horizontal(sopa_t *s, char *paraula, int inici_par, int mida)
 {
-    int i, j, fi_par = ((int)strlen(paraula) + inici_par);
+    int i, j, k, fi_par = ((int)strlen(paraula) + inici_par);
     bool valid = true;
 
     for (i = 0; i < s->n_par; i++)
     {
         for (j = 0; j < (int)strlen(s->par[i].ll); j++)
         {
+            for(k = inici_par; k <= fi_par; k++){
+                if(s->localitza_paraules[i][j] == k){
+                    valid = false;      // comprova que l'aleatori seleccionat no afecta a cap altre aleatori existent
+                }
+            }
+            if(inici_par%mida == 0){     //comprobar dirección para eviar en el caso de que vayan hacia atraás que sea 0 el rand
+                valid = false;
+                
+            }
+            
+           
+        }
+    }
+    return valid;
+}
+
+bool comprova_aleatoris_existents_vertical(sopa_t *s, char *paraula, int inici_par, int mida)
+{
+    int i, j, k;
+    bool valid = true;
+    int fi_par = inici_par + mida * (int)strlen(paraula);
+    for (i = 0; i < s->n_par; i++)
+    {
+        for (j = 0; j < (int)strlen(s->par[i].ll); j++)
+        {
+            
+            for(k = inici_par; k <= fi_par; k++){
+                if(s->localitza_paraules[i][j] == k){
+                    valid = false;      // comprova que l'aleatori seleccionat no afecta a cap altre aleatori existent
+                }
+            }
+            
             // comprova que l'aleatori seleccionat no afecta a cap altre aleatori existent
-            if (s->localitza_paraules[i][j] <= fi_par && s->localitza_paraules[i][j] >= inici_par && s->localitza_paraules[i][j])
+            if (s->localitza_paraules[i][j] < fi_par && s->localitza_paraules[i][j] > inici_par)
             {
                 valid = false;
             }
@@ -210,44 +277,56 @@ bool comprova_aleatoris_existents_horizontal(sopa_t *s, char *paraula, int inici
 
 void generar_posicions_aleatories(sopa_t *s, int mida, char **posicions)
 {
-    int b, c, d, e = 0, i = 0, long_par;
+    int b = 0, c, d, e = 0, i = 0, long_par, posicio = 0;
     short word = 0;
-    bool fin;
+    bool fin, exception = false;
     int rand_num;
 
     for (d = 0; d < s->n_par; d++)
     { // itera sobre paraules a sopa_t
-        printf("\n%d", (int)strlen(s->par[e].ll));
-        printf("   ->  %d", (int)strlen(s->par[d].ll));
-        if (s->par[e].direccio == 0 || s->par[e].direccio == 1)
+        exception = false;
+        b = 0; // contador error
+        if (s->par[d].direccio == 0 || s->par[d].direccio == 1)
         {
             do
             {
                 rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d) - 1; // retorna un numero aleatori respectant les posicions maximes indicades a la taula
-            } while (!comprova_aleatoris_existents_horizontal(s, s->par[d].ll, rand_num));
+                timeout(b, &exception);
+                b++;
+            } while (!comprova_aleatoris_existents_horizontal(s, s->par[d].ll, rand_num, mida) && !exception);
 
-            for (e = 0; e < ((int)strlen(s->par[d].ll)); e++)
+            if (!exception)
             {
-                s->localitza_paraules[d][e] = rand_num; // posicions que anira omplint
-                rand_num++;                             // com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
-                s->lletres[rand_num] = s->par[d].ll[e];
-                printf("\n%c", s->par[d].ll[e]);
-                printf(", %d", s->localitza_paraules[d][e]);
-                s->encertades[(int)s->localitza_paraules[d][e] + 1] = true;
+                for (e = 0; e < ((int)strlen(s->par[d].ll)); e++)
+                {
+                    s->localitza_paraules[d][e] = rand_num; // posicions que anira omplint
+                    rand_num++;                             // com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
+                    s->lletres[rand_num] = s->par[d].ll[e];
+                    s->encertades[(int)s->localitza_paraules[d][e] + 1] = true;
+                }
             }
 
-            // printf("\n%s", s->lletres);
-            printf("\n%d * %d", b, c);
-            printf("\ncheck: %c", s->lletres[(b * c) - 1]); // funciona
         }
-        if (s->par[e].direccio == 2)
+        else if (s->par[d].direccio == 2 || s->par[d].direccio == 3)
         {
-            printf("\nHoritzontal");
             do
             {
                 rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d) - 1; // retorna un numero aleatori respectant les posicions maximes indicades a la taula
-            } while (!comprova_aleatoris_existents_horizontal(s, s->par[d].ll, rand_num));
-            printf("\nNumero aleat: %d", rand_num);
+                timeout(b, &exception);
+                b++;
+            } while (!comprova_aleatoris_existents_vertical(s, s->par[d].ll, rand_num, mida) && !exception);
+            if (!exception)
+            {
+                s->localitza_paraules[d][0] = rand_num; // posicions que anira omplint
+                posicio = rand_num;
+                for (i = 0; i < ((int)strlen(s->par[d].ll)); i++)
+                {
+                    s->localitza_paraules[d][i] = posicio;
+                    s->lletres[posicio] = s->par[d].ll[i];
+                    s->encertades[(int)s->localitza_paraules[d][i]] = true;
+                    posicio += mida;
+                }
+            }
         }
     }
 }
