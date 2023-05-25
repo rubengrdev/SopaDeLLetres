@@ -56,7 +56,6 @@ void defineix_direccio(sopa_t *s)
     for (i = 0; i < s->n_par; i++)
     {
         s->par[i].direccio = rand() % 4;
-        printf("\n%d", s->par[i].direccio);
     }
 }
 
@@ -111,7 +110,7 @@ void preconfigura_struct(char **dades, sopa_t *s)
 bool overflow_taula(int long_par, int rand, int mida, int mida_sopa)
 {
     bool result = false;
-    if (((long_par + (rand)) < mida_sopa || (long_par - (rand)) > 0) && rand % mida != 0 && rand%mida !=9)
+    if (((long_par + (rand)) < mida_sopa || (long_par - (rand)) > 0))
     {
         // es possible utilitar aquesta paraula
         result = true;
@@ -149,13 +148,13 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio)
         switch (direccio)
         {
         case 0:
-            if ((((int)strlen(par) + posicio) < mida)) //"parche" temporal per un problema amb el salt de linea
+            if ((((int)strlen(par) + posicio) < mida-1)) //"parche" temporal per un problema amb el salt de linea
             {
                 no_overflow = true;
             }
             break;
         case 1:
-            if ((((int)strlen(par) - posicio) > 0) && candidat_rand%mida != 0)
+             if ((((int)strlen(par) + posicio) < mida-1)) //"parche" temporal per un problema amb el salt de linea
             {
                 no_overflow = true;
             }
@@ -167,9 +166,8 @@ bool no_extrem_sopa(char *par, int candidat_rand, int mida, int direccio)
         switch (direccio)
         {
         case 2:
-            if (((posicio) + (int)strlen(par) * mida < (mida)) && posicio >= 0)
+            if (((posicio) + (int)strlen(par) * mida < (mida * mida) - mida) && posicio >= 0)
             {
-                printf("\n%d\n", (posicio) + (int)strlen(par) * mida);
                 no_overflow = true;
             }
         case 3:
@@ -189,7 +187,6 @@ void timeout(int count, bool *exception)
     if (count >= (int)TIMEOUT)
     {
         *exception = true;
-        printf("\n%d hi ha problema", count);
     }
 }
 
@@ -213,7 +210,6 @@ int genera_aleatori(sopa_t *s, char *paraula, int rand_num, int mida, int dir)
         if (iterate == TIMEOUT)
         {
             fin = true;
-            printf("\nTIMEOUT");
         }
 
     } while (!fin);
@@ -260,127 +256,15 @@ bool comprova_aleatoris_existents_vertical(sopa_t *s, char *paraula, int inici_p
         {
             
             for(k = inici_par; k <= fi_par; k++){
-                if(s->localitza_paraules[i][j] == k){
+                if(s->localitza_paraules[i][j] == k && !(s->par[i].ll[0] == paraula[0])){
                     valid = false;      // comprova que l'aleatori seleccionat no afecta a cap altre aleatori existent
                 }
             }
             
-            // comprova que l'aleatori seleccionat no afecta a cap altre aleatori existent
-            if (s->localitza_paraules[i][j] < fi_par && s->localitza_paraules[i][j] > inici_par)
-            {
-                valid = false;
-            }
         }
     }
     return valid;
 }
-
-void generar_posicions_aleatories(sopa_t *s, int mida, char **posicions)
-{
-    int b = 0, c, d, e = 0, i = 0, long_par, posicio = 0;
-    short word = 0;
-    bool fin, exception = false;
-    int rand_num;
-
-    for (d = 0; d < s->n_par; d++)
-    { // itera sobre paraules a sopa_t
-        exception = false;
-        b = 0; // contador error
-        if (s->par[d].direccio == 0 || s->par[d].direccio == 1)
-        {
-            do
-            {
-                rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d) - 1; // retorna un numero aleatori respectant les posicions maximes indicades a la taula
-                timeout(b, &exception);
-                b++;
-            } while (!comprova_aleatoris_existents_horizontal(s, s->par[d].ll, rand_num, mida) && !exception);
-
-            if (!exception)
-            {
-                for (e = 0; e < ((int)strlen(s->par[d].ll)); e++)
-                {
-                    s->localitza_paraules[d][e] = rand_num; // posicions que anira omplint
-                    rand_num++;                             // com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
-                    s->lletres[rand_num] = s->par[d].ll[e];
-                    s->encertades[(int)s->localitza_paraules[d][e] + 1] = true;
-                }
-            }
-
-        }
-        else if (s->par[d].direccio == 2 || s->par[d].direccio == 3)
-        {
-            do
-            {
-                rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d) - 1; // retorna un numero aleatori respectant les posicions maximes indicades a la taula
-                timeout(b, &exception);
-                b++;
-            } while (!comprova_aleatoris_existents_vertical(s, s->par[d].ll, rand_num, mida) && !exception);
-            if (!exception)
-            {
-                s->localitza_paraules[d][0] = rand_num; // posicions que anira omplint
-                posicio = rand_num;
-                for (i = 0; i < ((int)strlen(s->par[d].ll)); i++)
-                {
-                    s->localitza_paraules[d][i] = posicio;
-                    s->lletres[posicio] = s->par[d].ll[i];
-                    s->encertades[(int)s->localitza_paraules[d][i]] = true;
-                    posicio += mida;
-                }
-            }
-        }
-    }
-}
-
-/* Aquesta funcio genera la sopa de lletres, a partir del fitxer i altres parametres */
-/* que ja decidireu. En aquest cas només l'emplena amb una SOPA d'EXEMPLE, es a dir */
-/* que haureu de fer la vostra pròpia. */
-void genera_sopa(char **dades, int mida, sopa_t *s)
-{
-    srand(time(NULL)); // seed per a poder treballar amb aleatoris
-    char **posicions;
-
-    s->dim = mida;                                          // Mida màxima: 40 x 40
-    s->lletres = malloc(s->dim * s->dim * sizeof(char));    // Espai per a les lletres
-    s->encertades = malloc(s->dim * s->dim * sizeof(char)); // Per saber si una lletra correspon a encert
-
-    // genera les lletres de la sopa de lletres
-    for (int i = 0; i < s->dim * s->dim; i++)
-    {
-        s->encertades[i] = false;
-        // Generem una lletra aleatoriament
-        s->lletres[i] = 'A' + (rand() % ('Z' - 'A'));
-    }
-
-    preconfigura_struct(dades, s); // set de dades de sopa_t per iniciar partida
-    ini_localitzacio_sopa(s);      // prepara una taula a on emmagatzemara les dades de cada paraula a la sopa generada
-
-    // TO DO...
-    //- inserir paraules de l'array a la cadena de text de forma completament aleatoria
-    generar_posicions_aleatories(s, mida, posicions);
-}
-
-/*
-   s->n_encerts = 2;
-   s->par[0].enc = false;
-   s->par[1].enc = true;
-   s->par[2].enc = true;
-   s->par[3].enc = false;
-   s->par[4].enc = false;
-
-   // Ara posem un parell de paraules a la sopa com si s'haguessin encertat
-   s->lletres[5] = 'B'; s->encertades[5] = true;
-   s->lletres[6] = 'O'; s->encertades[6] = true;
-   s->lletres[7] = 'L'; s->encertades[7] = true;
-   s->lletres[8] = 'E'; s->encertades[8] = true;
-   s->lletres[9] = 'T'; s->encertades[9] = true;
-
-   s->lletres[65 + s->dim] = 'A'; s->encertades[65 + s->dim] = true;
-   s->lletres[65 + 2 * s->dim] = 'R'; s->encertades[65 + 2 * s->dim] = true;
-   s->lletres[65 + 3 * s->dim] = 'B'; s->encertades[65 + 3 * s->dim] = true;
-   s->lletres[65 + 4 * s->dim] = 'U'; s->encertades[65 + 4 * s->dim] = true;
-   s->lletres[65 + 5 * s->dim] = 'S'; s->encertades[65 + 5 * s->dim] = true;
-   s->lletres[65 + 6 * s->dim] = 'T'; s->encertades[65 + 6 * s->dim] = true;
-   */
 
 /* Mostra una lletra segons si pertany a encert o no. No caldria modificar */
 void mostra_lletra(char ll, bool enc)
@@ -455,6 +339,113 @@ void mostra_sopa(sopa_t s)
             printf("%s\n", s.par[i].ll);
     }
 }
+
+
+
+
+
+
+
+
+
+void generar_posicions_aleatories(sopa_t *s, int mida, char **posicions)
+{
+    int b = 0, c, d, e = 0, i = 0, long_par, posicio = 0;
+    short word = 0;
+    bool fin, exception = false, not_complete = false;
+    int rand_num;
+
+    for (d = 0; d < s->n_par; d++)
+    { // itera sobre paraules a sopa_t
+        
+        b = 0; // contador error
+        if (s->par[d].direccio == 0 || s->par[d].direccio == 1)
+        {
+            do
+            {
+                rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d) - 1; // retorna un numero aleatori respectant les posicions maximes indicades a la taula
+                timeout(b, &exception);
+                b++;
+            } while (!comprova_aleatoris_existents_horizontal(s, s->par[d].ll, rand_num, mida) && !exception);
+
+            if (!exception)
+            {
+                for (e = 0; e < ((int)strlen(s->par[d].ll)); e++)
+                {
+                    s->localitza_paraules[d][e] = rand_num; // posicions que anira omplint
+                    rand_num++;                             // com aquest aleatori indicara la posicio a on arranca la paraula generada les seguents posicions seran les que contindran la resta de lletres de la paraula
+                    s->lletres[rand_num] = s->par[d].ll[e];
+                    s->encertades[(int)s->localitza_paraules[d][e] + 1] = true;
+                    //printf("\n%c -> %d", s->par[d].ll[e], s->localitza_paraules[d][e]);
+                }
+            }else{
+                printf("\nLa paraula '%s' no s'ha pogut ubicar", s->par[d].ll);
+                exception = false;
+                not_complete = true;
+            }
+
+        }
+        else if (s->par[d].direccio == 2 || s->par[d].direccio == 3)
+        {
+            do
+            {
+                rand_num = genera_aleatori(s, s->par[d].ll, rand_num, mida, d); // retorna un numero aleatori respectant les posicions maximes indicades a la taula
+                timeout(b, &exception);
+                b++;
+            } while (!comprova_aleatoris_existents_vertical(s, s->par[d].ll, rand_num, mida) && !exception);
+            if (!exception)
+            {
+                s->localitza_paraules[d][0] = rand_num; // posicions que anira omplint
+                posicio = rand_num;
+                for (i = 0; i < ((int)strlen(s->par[d].ll)); i++)
+                {
+                    s->localitza_paraules[d][i] = posicio;
+                    s->lletres[posicio] = s->par[d].ll[i];
+                    s->encertades[(int)s->localitza_paraules[d][i]] = true;
+                    posicio += mida;
+                    //printf("\n%c -> %d", s->par[d].ll[i], s->localitza_paraules[d][i]);
+                }
+            }else{
+                 printf("\nLa paraula '%s' no s'ha pogut ubicar", s->par[d].ll);
+                 exception = false;
+                 not_complete = true;
+            }
+        }
+    }
+    printf("\n");
+    if(not_complete){
+        printf("\nHi ha hagut un problema per a generar totes les paraules, només s'han pogut generar les paraules especificades\n");
+    }
+}
+
+/* Aquesta funcio genera la sopa de lletres, a partir del fitxer i altres parametres */
+/* que ja decidireu. En aquest cas només l'emplena amb una SOPA d'EXEMPLE, es a dir */
+/* que haureu de fer la vostra pròpia. */
+void genera_sopa(char **dades, int mida, sopa_t *s)
+{
+    srand(time(NULL)); // seed per a poder treballar amb aleatoris
+    char **posicions;
+
+    s->dim = mida;                                          // Mida màxima: 40 x 40
+    s->lletres = malloc(s->dim * s->dim * sizeof(char));    // Espai per a les lletres
+    s->encertades = malloc(s->dim * s->dim * sizeof(char)); // Per saber si una lletra correspon a encert
+
+    // genera les lletres de la sopa de lletres
+    for (int i = 0; i < s->dim * s->dim; i++)
+    {
+        s->encertades[i] = false;
+        // Generem una lletra aleatoriament
+        s->lletres[i] = 'A' + (rand() % ('Z' - 'A'));
+    }
+
+    preconfigura_struct(dades, s); // set de dades de sopa_t per iniciar partida
+    ini_localitzacio_sopa(s);      // prepara una taula a on emmagatzemara les dades de cada paraula a la sopa generada
+
+    // TO DO...
+    //- inserir paraules de l'array a la cadena de text de forma completament aleatoria
+    generar_posicions_aleatories(s, mida, posicions);
+}
+
 
 //@brief funcio que demana la mida que tindra la taula, aquesta mida sera n * n
 int demanar_mida()
