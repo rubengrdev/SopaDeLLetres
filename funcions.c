@@ -571,8 +571,17 @@ unsigned int comprova_arxiu(char *route)
         }
         fclose(t_file);
     }
-    if (!arxiuValid)
+    if(count_paraula > MAX_PARAULES){
+        arxiuValid = false;
+        printf("\nL'arxiu no respeta el máxim de paraules");
+    }else if(count_paraula < MIN_PARAULES){
+        arxiuValid = false;
+        printf("\nL'arxiu no respeta el mínim de paraules");
+    }
+    if (!arxiuValid){
         count_paraula = 0; // reinicia contador de paraules ja que invalidem tot l'arxiu
+    }
+        
     return count_paraula;
 }
 

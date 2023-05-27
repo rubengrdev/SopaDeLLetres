@@ -51,11 +51,6 @@ void mostra_lletra(char ll, bool enc);
 void mostra_sopa(sopa_t s);
 
 
-
-
-
-
-
 void generar_posicions_aleatories(sopa_t *s, int mida, char **posicions);
 
 /* Aquesta funcio genera la sopa de lletres, a partir del fitxer i altres parametres */

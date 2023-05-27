@@ -34,8 +34,10 @@ int main(int argc, char *argv[])
     if (comprova_entrada(argc, argv))
     { // en el cas de que la entrada sigui la esperada i l'arxiu existeixi
         mida_t = comprova_arxiu(argv[1]);
-        if (mida_t != 0)
+        if (mida_t != 0){
             validate = true;
+        }
+            
     }
 
     if (validate)
@@ -46,31 +48,14 @@ int main(int argc, char *argv[])
         ordenar_paraules(dades, i, mida_t - 1); // j = mida_t - 1 ja que volem n posicions desde 0 fins a n
         mostrar_paraules(dades, mida_t);        // mostra les paraules que es troben a l'arxiu
         mida_s = demanar_mida();                // emmagatzema a la variable mida_s la mida que tindra la sopa de lletres (recordar que sera n*n)
-        // mida_s = 10;
+
         sopa.n_par = mida_t;               // mida_t te la dimensio de la taula de paraules, aixi que asignarem aquesta informacio dintre de el struct
         genera_sopa(dades, mida_s, &sopa); // La generem (exemple)
 
         mostra_sopa(sopa); // La mostrem per pantalla
 
-        // TO DO...
-        /*
-        typedef struct
-        {
-            int dim;        // Nombre de files = nombre de columnes
-            char *lletres;  // Taula amb les lletres
-            bool *encertades;   // Les lletres son d'una paraula que s'ha encertat
-            paraula_t par[MAX_PARAULES];    // Les paraules
-            int n_par;  // Nombre de paraules
-            int n_encerts;    // Nombre de paraules encertades
-        } sopa_t;
-        */
-
-        // s->dim = funcio_demanar_mida();
-        // memcpy(dades, s->lletres, mida_t);      //memcpy(void * destination, const void * source, size_t num) es una funcio que s'ocupa de copiar els bytes de la direccio d'entrada fins a la direccio de sortida
-        // es a dir, fem una copia de l'array
+       /*TO DO... tractar jugada...*/
         free(dades);
     }
-
-    // revelar_sopa(sopa);
     return 0;
 }
